@@ -1,0 +1,87 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# No version information was available in the source files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: MeioUpload\n"
+"POT-Creation-Date: 2009-05-21 22:34-0300\n"
+"PO-Revision-Date: 2009-05-21 22:37-0300\n"
+"Last-Translator: Juan Basso <jrbasso@gmail.com>\n"
+"Language-Team: Juan Basso <jrbasso@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+"X-Poedit-Language: Portuguese\n"
+"X-Poedit-Country: BRAZIL\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: \models\behaviors\meio_upload.php:149
+msgid "This field has not been defined between the parameters of MeioUploadBehavior."
+msgstr "Este campo não foi definido entre os parâmetros do MeioUploadBehavior."
+
+#: \models\behaviors\meio_upload.php:152
+msgid "The directory where the file would be placed there or is protected against writing."
+msgstr "O diretório onde este arquivo seria colocado não existe ou é protegido contra escrita."
+
+#: \models\behaviors\meio_upload.php:155
+msgid "The file can not be empty."
+msgstr "O arquivo não pode ser vazio."
+
+#: \models\behaviors\meio_upload.php:158
+msgid "There were problems in uploading the file."
+msgstr "Ocorreram problemas no upload do arquivo."
+
+#: \models\behaviors\meio_upload.php:161
+msgid "The maximum file size is exceeded."
+msgstr "O tamanho máximo de arquivo foi excedido."
+
+#: \models\behaviors\meio_upload.php:164
+msgid "Invalid file type."
+msgstr "Tipo de arquivo inválido."
+
+#: \models\behaviors\meio_upload.php:167
+msgid "Invalid file extension."
+msgstr "Extensão de arquivo inválida."
+
+#: \models\behaviors\meio_upload.php:191
+msgid "MeioUploadBehavior Error: The field \"%s\" doesn't exists in the model \"%s\"."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:199
+msgid "MeioUploadBehavior Error: The default option must be the filename with extension."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:206
+msgid "MeioUploadBehavior Error: The thumbsizes names must be alphanumeric."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:283
+msgid "MeioUploadBehavior Error: The max_size option format is invalid."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:299
+msgid "MeioUploadBehavior Error: The max_size unit is invalid."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:341
+msgid "MeioUploadBehavior Error: The field \"%s\" wasn't declared as part of the MeioUploadBehavior in model \"%s\"."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:365
+msgid "MeioUploadBehavior Error: The directory %s does not exist and cannot be created."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:369
+msgid "MeioUploadBehavior Error: The directory %s does not exist."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:376
+msgid "MeioUploadBehavior Error: The directory %s isn't writable."
+msgstr ""
+
+#: \models\behaviors\meio_upload.php:627
+msgid "Problems in the copy of the file."
+msgstr "Problema na cópia do arquivo."
+

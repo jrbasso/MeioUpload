@@ -64,7 +64,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	/**
 	 * The default options for the behavior
 	 */
-	var $default_options = array(
+	var $defaultOptions = array(
 		'dir' => '',
 		'allowed_mime' => array(),
 		'allowed_ext' => array(),
@@ -77,89 +77,40 @@ class MeioUploadBehavior extends ModelBehavior {
 			'filesize' => 'filesize',
 			'mimetype' => 'mimetype'
 		),
-		'validations' => array(
-			'FieldName' => array(
-				'rule' => array('uploadCheckFieldName'),
-				'check' => true,
-				'message' => 'Este campo não foi definido entre os parâmetros do MeioUploadBehavior.'
-			),
-			'Dir' => array(
-				'rule' => array('uploadCheckDir'),
-				'check' => true,
-				'message' => 'O diretório onde este arquivo seria colocado não existe ou é protegido contra escrita.'
-			),
-			'Empty' => array(
-				'rule' => array('uploadCheckEmpty'),
-				'check' => true,
-				'on' => 'create',
-				'message' => 'O arquivo não pode ser vazio'
-			),
-			'UploadError' => array(
-				'rule' => array('uploadCheckUploadError'),
-				'check' => true,
-				'message' => 'Ocorreram problemas no upload do arquivo.'
-			),
-			'MaxSize' => array(
-				'rule' => array('uploadCheckMaxSize'),
-				'check' => true,
-				'message' => 'O tamanho máximo de arquivo foi excedido.'
-			),
-			'InvalidMime' => array(
-				'rule' => array('uploadCheckInvalidMime'),
-				'check' => true,
-				'message' => 'Tipo de arquivo inválido.'
-			),
-			'InvalidExt' => array(
-				'rule' => array('uploadCheckInvalidExt'),
-				'check' => true,
-				'message' => 'Extensão de arquivo inválida.'
-			)
-		)
+		'validations' => array()
 	);
 
-	var $default_validations = array(
+	var $defaultValidations = array(
 		'FieldName' => array(
 			'rule' => array('uploadCheckFieldName'),
-			'check' => true,
-			'message' => 'Este campo não foi definido entre os parâmetros do MeioUploadBehavior.'
+			'check' => true
 		),
 		'Dir' => array(
 			'rule' => array('uploadCheckDir'),
-			'check' => true,
-			'message' => 'O diretório onde este arquivo seria colocado não existe ou é protegido contra escrita.'
+			'check' => true
 		),
 		'Empty' => array(
 			'rule' => array('uploadCheckEmpty'),
 			'check' => true,
-			'on' => 'create',
-			'message' => 'O arquivo não pode ser vazio'
+			'on' => 'create'
 		),
 		'UploadError' => array(
 			'rule' => array('uploadCheckUploadError'),
-			'check' => true,
-			'message' => 'Ocorreram problemas no upload do arquivo.'
+			'check' => true
 		),
 		'MaxSize' => array(
 			'rule' => array('uploadCheckMaxSize'),
-			'check' => true,
-			'message' => 'O tamanho máximo de arquivo foi excedido.'
+			'check' => true
 		),
 		'InvalidMime' => array(
 			'rule' => array('uploadCheckInvalidMime'),
-			'check' => true,
-			'message' => 'Tipo de arquivo inválido.'
+			'check' => true
 		),
 		'InvalidExt' => array(
 			'rule' => array('uploadCheckInvalidExt'),
-			'check' => true,
-			'message' => 'Extensão de arquivo inválida.'
+			'check' => true
 		)
 	);
-
-	/**
-	 * The message for move error.
-	 */
-	var $moveErrorMsg = 'Ocorreram problemas na cópia do arquivo.';
 
 	/**
 	 * The array that saves the $options for the behavior
@@ -188,6 +139,39 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $__filesToRemove = array();
 
 	/**
+	 * Constructor
+	 *
+	 * @author Juan Basso
+	 */
+	function __construct() {
+		$messages = array(
+			'FieldName' => array(
+				'message' => __d('meio_upload', 'This field has not been defined between the parameters of MeioUploadBehavior.', true)
+			),
+			'Dir' => array(
+				'message' => __d('meio_upload', 'The directory where the file would be placed there or is protected against writing.', true)
+			),
+			'Empty' => array(
+				'message' => __d('meio_upload', 'The file can not be empty.', true)
+			),
+			'UploadError' => array(
+				'message' => __d('meio_upload', 'There were problems in uploading the file.', true)
+			),
+			'MaxSize' => array(
+				'message' => __d('meio_upload', 'The maximum file size is exceeded.', true)
+			),
+			'InvalidMime' => array(
+				'message' => __d('meio_upload', 'Invalid file type.', true)
+			),
+			'InvalidExt' => array(
+				'message' => __d('meio_upload', 'Invalid file extension.', true)
+			)
+		);
+		$this->defaultValidations = $this->arrayMerge($this->defaultValidations, $messages);
+		$this->defaultOptions['validations'] = $this->defaultValidations;
+	}
+
+	/**
 	 * Setup the behavior. It stores a reference to the model, merges the default options with the options for each field, and setup the validation rules.
 	 *
 	 * @author Vinicius Mendes
@@ -204,22 +188,22 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Check if given field exists
 			if (!$model->hasField($field)) {
-				trigger_error('MeioUploadBehavior Error: The field "'.$field.'" doesn\'t exists in the model "'.$model->name.'".', E_USER_WARNING);
+				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
 			}
 
 			// Merge given options with defaults
-			$options = $this->arrayMerge($this->default_options, $options);
+			$options = $this->arrayMerge($this->defaultOptions, $options);
 			// Including the default name to the replacements
 			if ($options['default']) {
 				if (!preg_match('/^.+\..+$/',$options['default'])) {
-					trigger_error('MeioUploadBehavior Error: The default option must be the filename with extension.', E_USER_ERROR);
+					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The default option must be the filename with extension.', true), E_USER_ERROR);
 				}
 				$this->_includeDefaultReplacement($options['default']);
 			}
 			// Verifies if the thumbsizes names is alphanumeric
 			foreach ($options['thumbsizes'] as $name => $size) {
 				if (!preg_match('/^[0-9a-zA-Z]+$/',$name)) {
-					trigger_error('MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', E_USER_ERROR);
+					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
 				}
 			}
 			// Process the max_size if it is not numeric
@@ -258,17 +242,18 @@ class MeioUploadBehavior extends ModelBehavior {
 	function arrayMerge($arr, $ins) {
 		if (is_array($arr)) {
 			if (is_array($ins)) {
-				foreach ($ins as $k=>$v) {
-					if (isset($arr[$k])&&is_array($v)&&is_array($arr[$k])) {
+				foreach ($ins as $k => $v) {
+					if (isset($arr[$k]) && is_array($v) && is_array($arr[$k])) {
 						$arr[$k] = $this->arrayMerge($arr[$k],$v);
+					} else {
+						$arr[$k] = $v;
 					}
-					else $arr[$k] = $v;
 				}
 			}
-		} elseif (!is_array($arr)&&(strlen($arr)==0||$arr==0)) {
-			$arr=$ins;
+		} elseif (!is_array($arr) && (strlen($arr) == 0 || $arr == 0)) {
+			$arr = $ins;
 		}
-		return($arr);
+		return $arr;
 	}
 
 	/**
@@ -295,7 +280,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return $size;
 		}
 		if (!preg_match('/^[1-9][0-9]* (kb|mb|gb|tb)$/i', $size)) {
-			trigger_error('MeioUploadBehavior Error: The max_size option format is invalid.', E_USER_ERROR);
+			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size option format is invalid.', true), E_USER_ERROR);
 			return 0;
 		}
 		list ($size, $unit) = explode(' ',$size);
@@ -311,7 +296,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (strtolower($unit) == 'tb') {
 			return $size * 1099511627776;
 		}
-		trigger_error('MeioUploadBehavior Error: The max_size unit is invalid.', E_USER_ERROR);
+		trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size unit is invalid.', true), E_USER_ERROR);
 		return 0;
 	}
 
@@ -335,8 +320,8 @@ class MeioUploadBehavior extends ModelBehavior {
 		} else {
 			$this->__model->validate[$fieldName] = array();
 		}
-		$this->__model->validate[$fieldName] = $this->arrayMerge($this->default_validations,$this->__model->validate[$fieldName]);
-		$this->__model->validate[$fieldName] = $this->arrayMerge($options['validations'],$this->__model->validate[$fieldName]);
+		$this->__model->validate[$fieldName] = $this->arrayMerge($this->defaultValidations, $this->__model->validate[$fieldName]);
+		$this->__model->validate[$fieldName] = $this->arrayMerge($options['validations'], $this->__model->validate[$fieldName]);
 	}
 
 	/**
@@ -353,7 +338,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (isset($this->__fields[$fieldName])) {
 				return true;
 			} else {
-				$this->log('UploadBehavior Error: The field "'.$fieldName.'" wasn\'t declared as part of the UploadBehavior in model "'.$model->name.'".');
+				$this->log(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->name));
 				return false;
 			}
 		}
@@ -377,18 +362,18 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!is_dir($options['dir'])) {
 					if ($options['create_directory']) {
 						if (!$this->Folder->mkdir($options['dir'])) {
-							trigger_error('UploadBehavior Error: The directory '.$options['dir'].' does not exist and cannot be created.', E_USER_WARNING);
+							trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', true), $options['dir']), E_USER_WARNING);
 							return false;
 						}
 					} else {
-						trigger_error('UploadBehavior Error: The directory'.$options['dir'].' does not exist.', E_USER_WARNING);
+						trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist.', true), $options['dir']), E_USER_WARNING);
 						return false;
 					}
 				}
 
 				// Check if directory is writable
 				if (!is_writable($options['dir'])) {
-					trigger_error('UploadBehavior Error: The directory '.$options['dir'].' isn\'t writable.', E_USER_WARNING);
+					trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s isn\'t writable.', true), $options['dir']), E_USER_WARNING);
 					return false;
 				}
 			}
@@ -639,7 +624,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Attempt to move uploaded file
 			if (!move_uploaded_file($model->data[$model->name][$fieldName]['tmp_name'], $saveAs)) {
-				$model->validationErrors[$field] = $moveErrorMsg;
+				$model->validationErrors[$field] = __d('meio_upload', 'Problems in the copy of the file.', true);
 				return false;
 			}
 
