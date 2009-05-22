@@ -7,7 +7,7 @@
  * @filesource http://www.meiocodigo.com/meioupload
  * @version 1.0.1
  * @lastmodified 2008-10-04
- * 
+ *
  * Usage:
  * 1) Download this behaviour and place it in your models/behaviours/upload.php
  * 2) If you require thumbnails for image generation, download Nate's phpThumb Component (http://bakery.cakephp.org/articles/view/phpthumb-component)
@@ -22,7 +22,7 @@
  *    `modified` datetime default NULL,
  *    PRIMARY KEY  (`id`) ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
  * 4) In your model that you want to have the upload behavior work, place the below code.  This example is for an Image model:
- * 
+ *
  * var $actsAs = array('Upload' => array(
  *       'filename' => array(
  *           'dir' => 'files/images',
@@ -43,23 +43,23 @@
  * Allowed Mimetypes and extentions should be pretty explanitory.
  * For thumbnails, when the file is uploaded, it will create 3 thumbnail sizes and prepend the name
  * to the thumbfiles (i.e. image_001.jpg will produced thumb.small.image_001.jpg, thumb.medium.image_001.jpg, etc)
- * 
+ *
  * 5) Create your upload view, make sure it's a multipart/form-data form, and the filename field is of type $form->file
  * 6) Make sure your directory is at least CHMOD 775, also check your php.ini MAX_FILE_SIZE is enough to support the filesizes you are uploading
- * 
+ *
  * Version Details
- * 
+ *
  * 1.0.1
  * + Fixed a bug in the create folder method
  * + Now you can use the $validate var of the model to apply the changes to default validation rules;
  * + Changed the my_array_merge function, now it's part of the behavior, name arrayMerge;
  * + Allow use of {DS}, {model} and {field} constants in directory name and fields names;
  * + Fixed a bug with the replacement of the default names.
- * 
+ *
  * 1.0
  * + Initial release.
  */
-   
+
 uses('folder');
 
 class MeioUploadBehavior extends ModelBehavior {
@@ -118,7 +118,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			)
 		)
 	);
-	
+
 	var $default_validations = array(
 		'FieldName' => array(
 			'rule' => array('uploadCheckFieldName'),
@@ -157,17 +157,17 @@ class MeioUploadBehavior extends ModelBehavior {
 			'message' => 'Extensão de arquivo inválida.'
 		)
 	);
-	
+
 	/**
 	 * The message for move error.
 	 */
 	var $moveErrorMsg = 'Ocorreram problemas na cópia do arquivo.';
-	
+
 	/**
 	 * The array that saves the $options for the behavior
 	 */
 	var $__fields = array();
-	
+
 	/**
 	 * Patterns of reserved words
 	 */
@@ -175,7 +175,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		"thumb",
 		"default"
 	);
-	
+
 	/**
 	 * Words to replace the patterns of reserved words
 	 */
@@ -183,31 +183,32 @@ class MeioUploadBehavior extends ModelBehavior {
 		"t_umb",
 		"d_fault"
 	);
-	
+
 	/**
 	 * Array of files to be removed on the afterSave callback
 	 */
 	var $__filesToRemove = array();
-	
+
 	/**
 	 * Setup the behavior. It stores a reference to the model, merges the default options with the options for each field, and setup the validation rules.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return null
 	 * @param $model Object
 	 * @param $config Array[optional]
 	 */
 	function setup(&$model, $config=array()) {
-		$this->Folder = &new Folder;
+		App::import('Core', 'Folder');
+		$this->Folder = &new Folder();
 		$this->__model = $model;
 		$this->__fields = array();
 		foreach($config as $field => $options) {
-			
+
 			// Check if given field exists
 			if(!$model->hasField($field)) {
 				trigger_error('MeioUploadBehavior Error: The field "'.$field.'" doesn\'t exists in the model "'.$model->name.'".', E_USER_WARNING);
 			}
-		   
+
 			// Merge given options with defaults
 			$options = $this->arrayMerge($this->default_options, $options);
 			// Including the default name to the replacements
@@ -226,8 +227,8 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Process the max_size if it is not numeric
 			$options['max_size'] = $this->sizeToBytes($options['max_size']);
 			$this->__fields[$field] = $options;
-			
-			
+
+
 			// Generate temporary directory if none provided
 			if(empty($options['dir'])) {
 				$this->__fields[$field]['dir'] = 'uploads' . DS . $model->name;
@@ -235,22 +236,22 @@ class MeioUploadBehavior extends ModelBehavior {
 			} else {
 				$this->__fields[$field]['dir'] = $this->replaceTokens($options['dir'],$field);
 			}
-			
+
 			// Replace tokens in the fields names.
 			foreach($this->__fields[$field]['fields'] as $fieldToken => $fieldName){
 				$this->__fields[$field]['fields'][$fieldToken] = $this->replaceTokens($fieldName,$field);
 			}
-			
+
 			// Check that the given directory does not have a DS on the end
 			if($options['dir'][strlen($options['dir'])-1] == DS) {
 				$options['dir'] = substr($options['dir'],0,strlen($options['dir'])-2);
 			}
 		}
 	}
-	
+
 	/**
 	 * Merges two arrays recursively
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return Array
 	 * @param $arr Array
@@ -274,19 +275,19 @@ class MeioUploadBehavior extends ModelBehavior {
 
 	/**
 	 * Replaces some tokens. {model} to the underscore version of the model name, {field} to the field name, {DS}. / or \ to DS constant value.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return String
 	 * @param $string String
 	 * @param $fieldName String
-	 */	
+	 */
 	function replaceTokens($string,$fieldName){
 		return str_replace(array('{model}', '{field}', '{DS}','/','\\'),array(Inflector::underscore($this->__model->name),$fieldName,DS,DS,DS),$string);
 	}
-	
+
 	/**
 	 * Convert a size value to bytes. For example: 2 MB to 2097152.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return int
 	 * @param $size String
@@ -305,10 +306,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		trigger_error('MeioUploadBehavior Error: The max_size unit is invalid.', E_USER_ERROR);
 		return 0;
 	}
-	
+
 	/**
 	 * Sets the validation for each field, based on the options.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return null
 	 * @param $fieldName String
@@ -316,7 +317,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function setupValidation($fieldName, $options){
 		$options = $this->__fields[$fieldName];
-		
+
 		if(isset($this->__model->validate[$fieldName])){
 			if(isset($this->__model->validate[$fieldName]['rule'])){
 				$this->__model->validate[$fieldName] = array(
@@ -329,10 +330,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__model->validate[$fieldName] = $this->arrayMerge($this->default_validations,$this->__model->validate[$fieldName]);
 		$this->__model->validate[$fieldName] = $this->arrayMerge($options['validations'],$this->__model->validate[$fieldName]);
 	}
-	
+
 	/**
 	 * Checks if the field was declared in the MeioUpload Behavior setup
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -350,10 +351,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Checks if the folder exists or can be created or writable.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -376,7 +377,7 @@ class MeioUploadBehavior extends ModelBehavior {
 						return false;
 					}
 				}
-				
+
 				// Check if directory is writable
 				if(!is_writable($options['dir'])) {
 					trigger_error('UploadBehavior Error: The directory '.$options['dir'].' isn\'t writable.', E_USER_WARNING);
@@ -386,10 +387,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Checks if the filename is not empty.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -406,10 +407,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Checks if ocurred erros in the upload.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -424,10 +425,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Checks if the file isn't bigger then the max file size option.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -443,10 +444,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Checks if the file is of an allowed mime-type.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -462,10 +463,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Checks if the file has an allowed extension.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $model Object
@@ -483,7 +484,7 @@ class MeioUploadBehavior extends ModelBehavior {
 							$matches++;
 						}
 					}
-				   
+
 					if($matches == 0) {
 						return false;
 					}
@@ -492,10 +493,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Set a file to be removed in afterSave callback
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return null
 	 * @param $fieldName String
@@ -509,10 +510,10 @@ class MeioUploadBehavior extends ModelBehavior {
 			);
 		}
 	}
-	
+
 	/**
 	 * Include a pattern of reserved word based on a filename, and it's replacement.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return null
 	 * @param $default String
@@ -537,10 +538,10 @@ class MeioUploadBehavior extends ModelBehavior {
 			$this->replacements[] = $newReplacement;
 		}
 	}
-	
+
 	/**
 	 * Removes the bad characters from the $filename and replace reserved words. It updates the $model->data.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return null
 	 * @param $fieldName String
@@ -551,17 +552,17 @@ class MeioUploadBehavior extends ModelBehavior {
 		$filename = str_replace($this->patterns,$this->replacements,$filename);
 		$filename = Inflector::slug($filename);
 		$i = 0;
-		$newFilename = $filename;	
+		$newFilename = $filename;
 		while(file_exists($this->__fields[$fieldName]['dir'].DS.$newFilename.'.'.$ext)){
 			$newFilename = $filename.$i;
 			$i++;
 		}
 		$this->__model->data[$this->__model->name][$fieldName]['name'] = $newFilename.'.'.$ext;
 	}
-	
+
 	/**
 	 * Splits a filename in two parts: the name and the extension. Returns an array with it respectively.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return Array
 	 * @param $filename String
@@ -573,11 +574,11 @@ class MeioUploadBehavior extends ModelBehavior {
 		$filename = implode('.',$parts);
 		return array($filename,$ext);
 	}
-	
+
 	/**
 	 * Sets the validation rules for each field.
-	 * 
-	 * @return true 
+	 *
+	 * @return true
 	 * @param $model Object
 	 */
 	function beforeValidate(&$model) {
@@ -589,8 +590,8 @@ class MeioUploadBehavior extends ModelBehavior {
 
 	/**
 	 * Uploads the files before saving the record.
-	 * 
-	 * @author Vinicius Mendes 
+	 *
+	 * @author Vinicius Mendes
 	 * @param $model Object
 	 */
 	function beforeSave(&$model) {
@@ -608,8 +609,8 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 				continue;
 			}
-			
-			// If no file has been upload, then unset the field to avoid overwriting existant file 
+
+			// If no file has been upload, then unset the field to avoid overwriting existant file
 			if(!isset($model->data[$model->name][$fieldName]) || !is_array($model->data[$model->name][$fieldName]) || empty($model->data[$model->name][$fieldName]['name'])){
 				if(!empty($model->data[$model->name][$model->primaryKey]) || !$options['default']){
 					unset($model->data[$model->name][$fieldName]);
@@ -622,7 +623,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if(!empty($model->data[$model->name][$model->primaryKey])){
 				$this->setFileToRemove($fieldName);
 			}
-			
+
 			// Fix the filename, removing bad characters and avoiding from overwriting existing ones
 			$this->_includeDefaultReplacement($options['default']);
 			$this->fixName($fieldName);
@@ -633,7 +634,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				$model->validationErrors[$field] = $moveErrorMsg;
 				return false;
 			}
-			
+
 			// It the file is an image, try to make the thumbnails
 			if (count($options['allowed_ext']) > 0 && in_array($model->data[$model->name][$fieldName]['type'], array('image/jpeg', 'image/pjpeg', 'image/png'))) {
 				foreach ($options['thumbsizes'] as $key => $value) {
@@ -647,37 +648,37 @@ class MeioUploadBehavior extends ModelBehavior {
 					$this->createthumb($saveAs, $thumbSaveAs, $value['width'], $value['height']);
 				}
 			}
-			
+
 			// Update model data
 			$model->data[$model->name][$options['fields']['dir']] = $options['dir'];
-			$model->data[$model->name][$options['fields']['mimetype']] =  $model->data[$model->name][$fieldName]['type'];            
+			$model->data[$model->name][$options['fields']['mimetype']] =  $model->data[$model->name][$fieldName]['type'];
 			$model->data[$model->name][$options['fields']['filesize']] = $model->data[$model->name][$fieldName]['size'];
 			$model->data[$model->name][$fieldName] = $model->data[$model->name][$fieldName]['name'];
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Deletes the files marked to be deleted in the save method. A file can be marked to be deleted if it is overwriten by another or if the user mark it to be deleted.
-	 * 
-	 * @author Vinicius Mendes 
+	 *
+	 * @author Vinicius Mendes
 	 * @param $model Object
 	 */
 	function afterSave(&$model) {
 		foreach($this->__filesToRemove as $file){
 			if($file['name'])
-				$this->_deleteFiles($file['name'], $file['dir']);			
+				$this->_deleteFiles($file['name'], $file['dir']);
 		}
 		// Reset the filesToRemove array
 		$this->__filesToRemove = array();
 	}
-	
+
 	/**
 	 * Deletes all files associated with the record beforing delete it.
-	 * 
-	 * @author Vinicius Mendes 
+	 *
+	 * @author Vinicius Mendes
 	 * @param $model Object
-	 */   
+	 */
 	function beforeDelete(&$model) {
 		$model->read(null, $model->id);
 		if(isset($model->data)) {
@@ -689,11 +690,11 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Delete the $filename inside the $dir and the thumbnails.
 	 * Returns true if the file is deleted and false otherwise.
-	 * 
+	 *
 	 * @author Vinicius Mendes
 	 * @return boolean
 	 * @param $filename Object
@@ -705,12 +706,13 @@ class MeioUploadBehavior extends ModelBehavior {
 		{
 			return false;
 		}
+		App::import('Core', 'Folder');
 		$folder = &new Folder($dir);
 		$files = $folder->find('thumb\.[a-zA-Z0-9]+\.'.$filename);
 		foreach($files as $f) unlink($dir.DS.$f);
 		return true;
 	}
-   
+
 	// Function to create thumbnail image
 	// This requires Nate Constant's thumbnail generator for PHPThumb
 	// http://bakery.cakephp.org/articles/view/phpthumb-component
@@ -719,20 +721,20 @@ class MeioUploadBehavior extends ModelBehavior {
 	{
 		App::import('Component', 'Thumb');
 		$system = explode(".", $name);
-	   
+
 		if (preg_match("/jpg|jpeg/", $system[1]))
 		{
 			$src_img = imagecreatefromjpeg($name);
 		}
-		 
+
 		if (preg_match("/png/", $system[1]))
 	   {
 		   $src_img = imagecreatefrompng($name);
 	   }
-	  
+
 	   $old_x = imagesx($src_img);
 	   $old_y = imagesy($src_img);
-	  
+
 	   if ($old_x >= $old_y)
 	   {
 		   $thumb_w = $new_w;
@@ -746,7 +748,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 	   $dst_img = imagecreatetruecolor($thumb_w, $thumb_h);
 	   imagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
-	  
+
 	   if (preg_match("/png/", $system[1]))
 	   {
 		   imagepng($dst_img, $filename);
