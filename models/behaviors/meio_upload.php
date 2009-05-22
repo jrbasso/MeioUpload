@@ -195,14 +195,14 @@ class MeioUploadBehavior extends ModelBehavior {
 			$options = $this->arrayMerge($this->defaultOptions, $options);
 			// Including the default name to the replacements
 			if ($options['default']) {
-				if (!preg_match('/^.+\..+$/',$options['default'])) {
+				if (!preg_match('/^.+\..+$/', $options['default'])) {
 					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The default option must be the filename with extension.', true), E_USER_ERROR);
 				}
 				$this->_includeDefaultReplacement($options['default']);
 			}
 			// Verifies if the thumbsizes names is alphanumeric
 			foreach ($options['thumbsizes'] as $name => $size) {
-				if (!preg_match('/^[0-9a-zA-Z]+$/',$name)) {
+				if (!preg_match('/^[0-9a-zA-Z]+$/', $name)) {
 					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
 				}
 			}
@@ -216,17 +216,17 @@ class MeioUploadBehavior extends ModelBehavior {
 				$this->__fields[$field]['dir'] = 'uploads' . DS . $model->name;
 			// Else replace the tokens of the dir.
 			} else {
-				$this->__fields[$field]['dir'] = $this->replaceTokens($options['dir'],$field);
+				$this->__fields[$field]['dir'] = $this->replaceTokens($options['dir'], $field);
 			}
 
 			// Replace tokens in the fields names.
 			foreach ($this->__fields[$field]['fields'] as $fieldToken => $fieldName) {
-				$this->__fields[$field]['fields'][$fieldToken] = $this->replaceTokens($fieldName,$field);
+				$this->__fields[$field]['fields'][$fieldToken] = $this->replaceTokens($fieldName, $field);
 			}
 
 			// Check that the given directory does not have a DS on the end
-			if ($options['dir'][strlen($options['dir'])-1] == DS) {
-				$options['dir'] = substr($options['dir'],0,strlen($options['dir'])-2);
+			if ($options['dir'][strlen($options['dir']) - 1] == DS) {
+				$options['dir'] = substr($options['dir'], 0, strlen($options['dir'])-2);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (is_array($ins)) {
 				foreach ($ins as $k => $v) {
 					if (isset($arr[$k]) && is_array($v) && is_array($arr[$k])) {
-						$arr[$k] = $this->arrayMerge($arr[$k],$v);
+						$arr[$k] = $this->arrayMerge($arr[$k], $v);
 					} else {
 						$arr[$k] = $v;
 					}
@@ -264,8 +264,8 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $string String
 	 * @param $fieldName String
 	 */
-	function replaceTokens($string,$fieldName) {
-		return str_replace(array('{model}', '{field}', '{DS}','/','\\'),array(Inflector::underscore($this->__model->name),$fieldName,DS,DS,DS),$string);
+	function replaceTokens($string, $fieldName) {
+		return str_replace(array('{model}', '{field}', '{DS}', '/', '\\'),array(Inflector::underscore($this->__model->name), $fieldName, DS, DS, DS), $string);
 	}
 
 	/**
@@ -283,7 +283,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size option format is invalid.', true), E_USER_ERROR);
 			return 0;
 		}
-		list ($size, $unit) = explode(' ',$size);
+		list ($size, $unit) = explode(' ', $size);
 		if (strtolower($unit) == 'kb') {
 			return $size * 1024;
 		}
@@ -332,9 +332,11 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $model Object
 	 * @param $data Array
 	 */
-	function uploadCheckFieldName(&$model, $data,$other) {
+	function uploadCheckFieldName(&$model, $data, $other) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['FieldName']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['FieldName']['check']) {
+				return true;
+			}
 			if (isset($this->__fields[$fieldName])) {
 				return true;
 			} else {
@@ -391,7 +393,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function uploadCheckEmpty(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['Empty']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['Empty']['check']) {
+				return true;
+			}
 			if (empty($field['remove'])) {
 				if (!is_array($field) || empty($field['name'])) {
 					return false;
@@ -411,7 +415,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function uploadCheckUploadError(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['UploadError']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['UploadError']['check']) {
+				return true;
+			}
 			if (!empty($field['name']) && $field['error'] > 0) {
 				return false;
 			}
@@ -429,7 +435,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function uploadCheckMaxSize(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['MaxSize']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['MaxSize']['check']) {
+				return true;
+			}
 			$options = $this->__fields[$fieldName];
 			if (!empty($field['name']) && $field['size'] > $options['max_size']) {
 				return false;
@@ -448,7 +456,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function uploadCheckInvalidMime(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['InvalidMime']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['InvalidMime']['check']) {
+				return true;
+			}
 			$options = $this->__fields[$fieldName];
 			if (!empty($field['name']) && count($options['allowed_mime']) > 0 && !in_array($field['type'], $options['allowed_mime'])) {
 				return false;
@@ -467,13 +477,15 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function uploadCheckInvalidExt(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['InvalidExt']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['InvalidExt']['check']) {
+				return true;
+			}
 			$options = $this->__fields[$fieldName];
 			if (!empty($field['name'])) {
 				if (count($options['allowed_ext']) > 0) {
 					$matches = 0;
 					foreach ($options['allowed_ext'] as $extension) {
-						if (substr($field['name'],-strlen($extension)) == $extension) {
+						if (substr($field['name'], -strlen($extension)) == $extension) {
 							$matches++;
 						}
 					}
@@ -542,15 +554,14 @@ class MeioUploadBehavior extends ModelBehavior {
 	function fixName($fieldName) {
 		// updates the filename removing the keywords thumb and default name for the field.
 		list ($filename, $ext) = $this->splitFilenameAndExt($this->__model->data[$this->__model->name][$fieldName]['name']);
-		$filename = str_replace($this->patterns,$this->replacements,$filename);
+		$filename = str_replace($this->patterns, $this->replacements, $filename);
 		$filename = Inflector::slug($filename);
 		$i = 0;
 		$newFilename = $filename;
-		while (file_exists($this->__fields[$fieldName]['dir'].DS.$newFilename.'.'.$ext)) {
-			$newFilename = $filename.$i;
-			$i++;
+		while (file_exists($this->__fields[$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
+			$newFilename = $filename . $i++;
 		}
-		$this->__model->data[$this->__model->name][$fieldName]['name'] = $newFilename.'.'.$ext;
+		$this->__model->data[$this->__model->name][$fieldName]['name'] = $newFilename . '.' . $ext;
 	}
 
 	/**
@@ -561,11 +572,11 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $filename String
 	 */
 	function splitFilenameAndExt($filename) {
-		$parts = explode('.',$filename);
-		$ext = $parts[count($parts)-1];
-		unset($parts[count($parts)-1]);
-		$filename = implode('.',$parts);
-		return array($filename,$ext);
+		$parts = explode('.', $filename);
+		$ext = $parts[count($parts) - 1];
+		unset($parts[count($parts) - 1]);
+		$filename = implode('.', $parts);
+		return array($filename, $ext);
 	}
 
 	/**
@@ -575,7 +586,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $model Object
 	 */
 	function beforeValidate(&$model) {
-		foreach ($this->__fields as $fieldName=>$options) {
+		foreach ($this->__fields as $fieldName => $options) {
 			$this->setupValidation($fieldName, $options);
 		}
 		return true;
@@ -588,7 +599,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $model Object
 	 */
 	function beforeSave(&$model) {
-		foreach ($this->__fields as $fieldName=>$options) {
+		foreach ($this->__fields as $fieldName => $options) {
 			// if the file is marked to be deleted, use the default or set the field to null
 			if (!empty($model->data[$model->name][$fieldName]['remove'])) {
 				if ($options['default']) {
@@ -636,7 +647,7 @@ class MeioUploadBehavior extends ModelBehavior {
 						$thumbSaveAs = $saveAs;
 					// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
 					} else {
-						$thumbSaveAs = $options['dir'].DS.'thumb.'.$key.'.'.$model->data[$model->name][$fieldName]['name'];
+						$thumbSaveAs = $options['dir'] . DS . 'thumb.' . $key . '.' . $model->data[$model->name][$fieldName]['name'];
 					}
 					$this->createthumb($saveAs, $thumbSaveAs, $value['width'], $value['height']);
 				}
@@ -659,8 +670,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function afterSave(&$model) {
 		foreach ($this->__filesToRemove as $file) {
-			if ($file['name'])
+			if ($file['name']) {
 				$this->_deleteFiles($file['name'], $file['dir']);
+			}
 		}
 		// Reset the filesToRemove array
 		$this->__filesToRemove = array();
@@ -675,10 +687,11 @@ class MeioUploadBehavior extends ModelBehavior {
 	function beforeDelete(&$model) {
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
-			foreach ($this->__fields as $field=>$options) {
+			foreach ($this->__fields as $field => $options) {
 				$file = $model->data[$model->name][$field];
-				if ($file && $file != $options['default'])
+				if ($file && $file != $options['default']) {
 					$this->_deleteFiles($file, $options['dir']);
+				}
 			}
 		}
 		return true;
@@ -700,9 +713,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		App::import('Core', 'Folder');
 		$folder = &new Folder($dir);
-		$files = $folder->find('thumb\.[a-zA-Z0-9]+\.'.$filename);
+		$files = $folder->find('thumb\.[a-zA-Z0-9]+\.' . $filename);
 		foreach ($files as $f) {
-			unlink($dir.DS.$f);
+			unlink($dir . DS . $f);
 		}
 		return true;
 	}
