@@ -69,13 +69,19 @@ class MeioUploadBehavior extends ModelBehavior {
 		'allowed_mime' => array(),
 		'allowed_ext' => array(),
 		'create_directory' => true,
-		'max_size' => 2097152,
+		'max_size' => 2097152, // 2MB
 		'thumbsizes' => array(),
 		'default' => false,
 		'fields' => array(
 			'dir' => 'dir',
 			'filesize' => 'filesize',
 			'mimetype' => 'mimetype'
+		),
+		'length' => array(
+			'min_width' => 0, // 0 for not validates
+			'max_width' => 0,
+			'min_height' => 0,
+			'max_height' => 0
 		),
 		'validations' => array()
 	);
@@ -109,7 +115,23 @@ class MeioUploadBehavior extends ModelBehavior {
 		'InvalidExt' => array(
 			'rule' => array('uploadCheckInvalidExt'),
 			'check' => true
-		)
+		),
+		'MinWidth' => array(
+			'rule' => array('uploadCheckMinWidth'),
+			'check' => true
+		),
+		'MaxWidth' => array(
+			'rule' => array('uploadCheckMaxWidth'),
+			'check' => true
+		),
+		'MinHeight' => array(
+			'rule' => array('uploadCheckMinHeight'),
+			'check' => true
+		),
+		'MaxHeight' => array(
+			'rule' => array('uploadCheckMaxHeight'),
+			'check' => true
+		),
 	);
 
 	/**
@@ -494,6 +516,90 @@ class MeioUploadBehavior extends ModelBehavior {
 						return false;
 					}
 				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if the min width is allowed
+	 *
+	 * @author Juan Basso
+	 * @return boolean
+	 * @param $model Object
+	 * @param $data Array
+	 */
+	function uploadCheckMinWidth(&$model, $data) {
+		foreach ($data as $fieldName => $field) {
+			if (!$this->__model->validate[$fieldName]['MinWidth']['check']) {
+				return true;
+			}
+			$options = $this->__fields[$fieldName];
+			if (!empty($field['name']) && $options['length']['min_width'] > 0 && imagesx($field['tmp_name']) < $options['length']['min_width']) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if the max width is allowed
+	 *
+	 * @author Juan Basso
+	 * @return boolean
+	 * @param $model Object
+	 * @param $data Array
+	 */
+	function uploadCheckMaxWidth(&$model, $data) {
+		foreach ($data as $fieldName => $field) {
+			if (!$this->__model->validate[$fieldName]['MaxWidth']['check']) {
+				return true;
+			}
+			$options = $this->__fields[$fieldName];
+			if (!empty($field['name']) && $options['length']['max_width'] > 0 && imagesx($field['tmp_name']) > $options['length']['max_width']) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if the min height is allowed
+	 *
+	 * @author Juan Basso
+	 * @return boolean
+	 * @param $model Object
+	 * @param $data Array
+	 */
+	function uploadCheckMinHeight(&$model, $data) {
+		foreach ($data as $fieldName => $field) {
+			if (!$this->__model->validate[$fieldName]['MinHeight']['check']) {
+				return true;
+			}
+			$options = $this->__fields[$fieldName];
+			if (!empty($field['name']) && $options['length']['min_height'] > 0 && imagesy($field['tmp_name']) < $options['length']['min_height']) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if the max height is allowed
+	 *
+	 * @author Juan Basso
+	 * @return boolean
+	 * @param $model Object
+	 * @param $data Array
+	 */
+	function uploadCheckMaxHeight(&$model, $data) {
+		foreach ($data as $fieldName => $field) {
+			if (!$this->__model->validate[$fieldName]['MaxHeight']['check']) {
+				return true;
+			}
+			$options = $this->__fields[$fieldName];
+			if (!empty($field['name']) && $options['length']['max_height'] > 0 && imagesy($field['tmp_name']) > $options['length']['max_height']) {
+				return false;
 			}
 		}
 		return true;
