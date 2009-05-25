@@ -121,16 +121,16 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * Patterns of reserved words
 	 */
 	var $patterns = array(
-		"thumb",
-		"default"
+		'thumb',
+		'default'
 	);
 
 	/**
 	 * Words to replace the patterns of reserved words
 	 */
 	var $replacements = array(
-		"t_umb",
-		"d_fault"
+		't_umb',
+		'd_fault'
 	);
 
 	/**
@@ -723,13 +723,13 @@ class MeioUploadBehavior extends ModelBehavior {
 	// Function to create thumbnail image
 	// This function is original from digital spaghetti's version
 	function createthumb($name, $filename, $new_w, $new_h) {
-		$system = explode(".", $name);
+		$system = explode('.', $name);
 
-		if (preg_match("/jpg|jpeg/", $system[1])) {
+		if (preg_match('/jpg|jpeg/', $system[1])) {
 			$src_img = imagecreatefromjpeg($name);
 		}
 
-		if (preg_match("/png/", $system[1])) {
+		if (preg_match('/png/', $system[1])) {
 			$src_img = imagecreatefrompng($name);
 		}
 
@@ -749,7 +749,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$dst_img = imagecreatetruecolor($thumb_w, $thumb_h);
 		imagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
 
-		if (preg_match("/png/", $system[1])) {
+		if (preg_match('/png/', $system[1])) {
 			imagepng($dst_img, $filename);
 		} else {
 			imagejpeg($dst_img, $filename);
