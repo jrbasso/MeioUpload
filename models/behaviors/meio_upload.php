@@ -721,11 +721,8 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 	// Function to create thumbnail image
-	// This requires Nate Constant's thumbnail generator for PHPThumb
-	// http://bakery.cakephp.org/articles/view/phpthumb-component
-	// Thi function is original from digital spaghetti's version
+	// This function is original from digital spaghetti's version
 	function createthumb($name, $filename, $new_w, $new_h) {
-		App::import('Component', 'Thumb');
 		$system = explode(".", $name);
 
 		if (preg_match("/jpg|jpeg/", $system[1])) {
