@@ -185,7 +185,6 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__model = $model;
 		$this->__fields = array();
 		foreach ($config as $field => $options) {
-
 			// Check if given field exists
 			if (!$model->hasField($field)) {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
@@ -202,14 +201,13 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 			// Verifies if the thumbsizes names is alphanumeric
 			foreach ($options['thumbsizes'] as $name => $size) {
-				if (!preg_match('/^[0-9a-zA-Z]+$/', $name)) {
+				if (empty($name) || !ctype_alnum($name)) {
 					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
 				}
 			}
 			// Process the max_size if it is not numeric
 			$options['max_size'] = $this->sizeToBytes($options['max_size']);
 			$this->__fields[$field] = $options;
-
 
 			// Generate temporary directory if none provided
 			if (empty($options['dir'])) {
@@ -225,9 +223,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 
 			// Check that the given directory does not have a DS on the end
-			if ($options['dir'][strlen($options['dir']) - 1] == DS) {
-				$options['dir'] = substr($options['dir'], 0, strlen($options['dir'])-2);
-			}
+			$options['dir'] = rtrim($options['dir'], DS);
 		}
 	}
 
@@ -265,7 +261,11 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $fieldName String
 	 */
 	function replaceTokens($string, $fieldName) {
-		return str_replace(array('{model}', '{field}', '{DS}', '/', '\\'),array(Inflector::underscore($this->__model->name), $fieldName, DS, DS, DS), $string);
+		return str_replace(
+			array('{model}', '{field}', '{DS}', '/', '\\'),
+			array(Inflector::underscore($this->__model->name), $fieldName, DS, DS, DS),
+			$string
+		);
 	}
 
 	/**
@@ -279,24 +279,22 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (is_numeric($size)) {
 			return $size;
 		}
-		if (!preg_match('/^[1-9][0-9]* (kb|mb|gb|tb)$/i', $size)) {
+		if (!preg_match('/^([1-9][0-9]*) (kb|mb|gb|tb)$/i', $size, $matches)) {
 			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size option format is invalid.', true), E_USER_ERROR);
 			return 0;
 		}
-		list ($size, $unit) = explode(' ', $size);
-		if (strtolower($unit) == 'kb') {
-			return $size * 1024;
+		switch (strtolower($matches[2])) {
+			case 'kb':
+				return $matches[1] * 1024;
+			case'mb':
+				return $matches[1] * 1048576;
+			case 'gb':
+				return $matches[1] * 1073741824;
+			case 'tb':
+				return $matches[1] * 1099511627776;
+			default:
+				trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size unit is invalid.', true), E_USER_ERROR);
 		}
-		if (strtolower($unit) == 'mb') {
-			return $size * 1048576;
-		}
-		if (strtolower($unit) == 'gb') {
-			return $size * 1073741824;
-		}
-		if (strtolower($unit) == 'tb') {
-			return $size * 1099511627776;
-		}
-		trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size unit is invalid.', true), E_USER_ERROR);
 		return 0;
 	}
 
@@ -357,7 +355,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	 */
 	function uploadCheckDir(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['Dir']['check']) return true;
+			if (!$this->__model->validate[$fieldName]['Dir']['check']) {
+				return true;
+			}
 			$options = $this->__fields[$fieldName];
 			if (empty($field['remove']) || empty($field['name'])) {
 				// Check if directory exists and create it if required
