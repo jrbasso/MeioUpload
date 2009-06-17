@@ -261,7 +261,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param $model Object
 	 * @param $config Array[optional]
 	 */
-	function setup(&$model, $config=array()) {
+	function setup(&$model, $config = array()) {
 		App::import('Core', 'Folder');
 		$this->Folder = &new Folder();
 		$this->__model = $model;
