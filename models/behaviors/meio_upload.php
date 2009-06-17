@@ -83,6 +83,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		'max_size' => 2097152, // 2MB
 		'thumbsizes' => array(),
 		'default' => false,
+		'max_dimension' => null,
 		'thumbnailQuality' => 75,
 		'useImageMagick' => false,
 		'imageMagickPath' => '/usr/bin/convert',
@@ -770,17 +771,21 @@ class MeioUploadBehavior extends ModelBehavior {
 				return false;
 			}
 
-			// It the file is an image, try to make the thumbnails
-			if (count($options['allowed_ext']) > 0 && in_array($model->data[$model->name][$fieldName]['type'], array('image/jpeg', 'image/pjpeg', 'image/png'))) {
+			// If the file is an image, try to make the thumbnails
+			if (count($options['allowed_ext']) > 0 && in_array($model->data[$model->name][$fieldName]['type'], array('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png'))) {
 				foreach ($options['thumbsizes'] as $key => $value) {
 					// If a 'normal' thumbnail is set, then it will overwrite the original file
-					if ($key == 'normal') {
+					if($key == 'normal'){
 						$thumbSaveAs = $saveAs;
 					// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
 					} else {
-						$thumbSaveAs = $options['dir'] . DS . 'thumb.' . $key . '.' . $model->data[$model->name][$fieldName]['name'];
+						$thumbSaveAs = $options['dir'].DS.'thumb.'.$key.'.'.$model->data[$model->name][$fieldName]['name'];
 					}
-					$this->createthumb($saveAs, $thumbSaveAs, $value['width'], $value['height']);
+					if (isset($value['max_dimension'])) {
+						$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, array('thumbWidth' => $value['width'], 'thumbHeight' => $value['height'], 'maxDimension' => $value['max_dimension']));
+					} else {
+						$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, array('thumbWidth' => $value['width'], 'thumbHeight' => $value['height']));
+					}
 				}
 			}
 
@@ -851,44 +856,59 @@ class MeioUploadBehavior extends ModelBehavior {
 		return true;
 	}
 
-	// Function to create thumbnail image
-	// This function is original from digital spaghetti's version
-	function createthumb($name, $filename, $new_w, $new_h) {
-		$system = explode('.', $name);
-
-		if (preg_match('/jpg|jpeg/', $system[1])) {
-			$src_img = imagecreatefromjpeg($name);
-		}
-
-		if (preg_match('/png/', $system[1])) {
-			$src_img = imagecreatefrompng($name);
-		}
-
-		$old_x = imagesx($src_img);
-		$old_y = imagesy($src_img);
-
-		if ($old_x >= $old_y) {
-			$thumb_w = $new_w;
-			$ratio = $old_y / $old_x;
-			$thumb_h = $ratio * $new_w;
-		} else if ($old_x < $old_y) {
-			$thumb_h = $new_h;
-			$ratio = $old_x / $old_y;
-			$thumb_w = $ratio * $new_h;
-		}
-
-		$dst_img = imagecreatetruecolor($thumb_w, $thumb_h);
-		imagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
-
-		if (preg_match('/png/', $system[1])) {
-			imagepng($dst_img, $filename);
+	/**
+	 * Function to create Thumbnail images
+	 * This will ACTUALLY USE phpThumb, as opposed to just saying it will
+	 * Will convert more than just JPG/JPEG/PNG (hopefully)
+	 * 
+	 * @author Jose Diaz-Gonzalez
+	 * @param String source file name (without path)
+	 * @param String target file name (without path)
+	 * @param String path to source and destination (no trailing DS)
+	 */
+	function createThumbnail($source, $target, $fieldName, $params = array()) {
+		$params = array_merge(
+			array(
+				'thumbWidth' => 150, 
+				'thumbHeight' => 225, 
+				'maxDimension' => ''), 
+				$params);
+		
+		// Import phpThumb class
+		App::import('Vendor','phpthumb', array('file' => 'phpThumb'.DS.'phpthumb.class.php'));
+		
+		// Configuring thumbnail settings
+		$thumbNail = new phpthumb;
+		$thumbNail->setSourceFilename($source);
+		
+		if (($params['maxDimension'] != 'h') | ($params['maxDimension'] != 'w')) {
+			$thumbNail->w = $params['thumbWidth'];
+			$thumbNail->h = $params['thumbHeight'];
 		} else {
-			imagejpeg($dst_img, $filename);
+			if ($params['maxDimension'] == 'w') {
+				$thumbNail->w = $params['thumbWidth'];
+			} else if ($params['maxDimension'] == 'h') {
+				$thumbNail->h = $params['thumbHeight'];
+			}
 		}
+		$thumbNail->q = $this->__fields[$fieldName]['thumbnailQuality'];
 
-		imagedestroy($dst_img);
-		imagedestroy($src_img);
+		$imageArray = explode(".", $source);
+		$thumbNail->config_output_format = $imageArray[1];
+		unset($imageArray);
+
+		$thumbNail->config_prefer_imagemagick = $this->__fields[$fieldName]['useImageMagick'];
+		$thumbNail->config_imagemagick_path = $this->__fields[$fieldName]['imageMagickPath'];
+
+		// Setting whether to die upon error
+		$thumbNail->config_error_die_on_error = true;
+
+		// Creating thumbnail
+		if ($thumbNail->GenerateThumbnail()) {
+			if (!$thumbNail->RenderToFile($target)) {
+				$this->addError('Could not render image to: '.$target);
+			}
+		}
 	}
 }
-
 ?>
