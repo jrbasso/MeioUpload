@@ -904,41 +904,43 @@ class MeioUploadBehavior extends ModelBehavior {
 			array(
 				'thumbWidth' => 150, 
 				'thumbHeight' => 225, 
-				'maxDimension' => ''), 
+				'maxDimension' => '',
+				'zoomCrop' => false), 
 				$params);
 		
 		// Import phpThumb class
 		App::import('Vendor','phpthumb', array('file' => 'phpThumb'.DS.'phpthumb.class.php'));
 		
 		// Configuring thumbnail settings
-		$thumbNail = new phpthumb;
-		$thumbNail->setSourceFilename($source);
+		$phpThumb = new phpthumb;
+		$phpThumb->setSourceFilename($source);
 		
 		if (($params['maxDimension'] != 'h') | ($params['maxDimension'] != 'w')) {
-			$thumbNail->w = $params['thumbWidth'];
-			$thumbNail->h = $params['thumbHeight'];
+			$phpThumb->w = $params['thumbWidth'];
+			$phpThumb->h = $params['thumbHeight'];
 		} else {
 			if ($params['maxDimension'] == 'w') {
-				$thumbNail->w = $params['thumbWidth'];
+				$phpThumb->w = $params['thumbWidth'];
 			} else if ($params['maxDimension'] == 'h') {
-				$thumbNail->h = $params['thumbHeight'];
+				$phpThumb->h = $params['thumbHeight'];
 			}
 		}
-		$thumbNail->q = $this->__fields[$fieldName]['thumbnailQuality'];
+		$phpThumb->setParameter('zc', $params['zoomCrop']);
+		$phpThumb->q = $this->__fields[$fieldName]['thumbnailQuality'];
 
 		$imageArray = explode(".", $source);
-		$thumbNail->config_output_format = $imageArray[1];
+		$phpThumb->config_output_format = $imageArray[1];
 		unset($imageArray);
 
-		$thumbNail->config_prefer_imagemagick = $this->__fields[$fieldName]['useImageMagick'];
-		$thumbNail->config_imagemagick_path = $this->__fields[$fieldName]['imageMagickPath'];
+		$phpThumb->config_prefer_imagemagick = $this->__fields[$fieldName]['useImageMagick'];
+		$phpThumb->config_imagemagick_path = $this->__fields[$fieldName]['imageMagickPath'];
 
 		// Setting whether to die upon error
-		$thumbNail->config_error_die_on_error = true;
+		$phpThumb->config_error_die_on_error = true;
 
 		// Creating thumbnail
-		if ($thumbNail->GenerateThumbnail()) {
-			if (!$thumbNail->RenderToFile($target)) {
+		if ($phpThumb->GenerateThumbnail()) {
+			if (!$phpThumb->RenderToFile($target)) {
 				$this->addError('Could not render image to: '.$target);
 			}
 		}
