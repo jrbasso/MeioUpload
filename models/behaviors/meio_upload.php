@@ -117,6 +117,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		'thumbsizes' => array(),
 		'default' => false,
 		'max_dimension' => null,
+		'zoomCrop' => false,
 		'thumbnailQuality' => 75,
 		'useImageMagick' => false,
 		'imageMagickPath' => '/usr/bin/convert',
@@ -904,8 +905,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			array(
 				'thumbWidth' => 150, 
 				'thumbHeight' => 225, 
-				'maxDimension' => '',
-				'zoomCrop' => false), 
+				'maxDimension' => ''
 				$params);
 		
 		// Import phpThumb class
@@ -925,7 +925,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				$phpThumb->h = $params['thumbHeight'];
 			}
 		}
-		$phpThumb->setParameter('zc', $params['zoomCrop']);
+		$phpThumb->setParameter('zc', $this->__fields[$fieldName]['zoomCrop']);
 		$phpThumb->q = $this->__fields[$fieldName]['thumbnailQuality'];
 
 		$imageArray = explode(".", $source);
