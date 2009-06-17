@@ -83,6 +83,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		'max_size' => 2097152, // 2MB
 		'thumbsizes' => array(),
 		'default' => false,
+		'thumbnailQuality' => 75,
+		'useImageMagick' => false,
+		'imageMagickPath' => '/usr/bin/convert',
 		'fields' => array(
 			'dir' => 'dir',
 			'filesize' => 'filesize',
