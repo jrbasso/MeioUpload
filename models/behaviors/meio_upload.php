@@ -9,18 +9,21 @@
  * @lastmodified 2008-10-04
  *
  * Usage:
- * 1) Download this behaviour and place it in your models/behaviours/upload.php
- * 2) If you require thumbnails for image generation, download Nate's phpThumb Component (http://bakery.cakephp.org/articles/view/phpthumb-component)
+ * 1) Download this behavior and place it in your models/behaviors/meio_upload.php
+ * 2) If you require thumbnails for image generation, download the latest copy of 
+ *     phpThumb and extract it into your vendors directory. Should end up like: /vendors/phpThumb/{files}.
+ *    (http://phpthumb.sourceforge.net)
  * 3) Insert the following SQL into your database.  This is a basic model you can expand on:
- *   CREATE TABLE `images` (
- *       `id` int(8) unsigned NOT NULL auto_increment,
- *    `filename` varchar() default NULL,
- *    `dir` varchar(255) default NULL,
- *    `mimetype` varchar(255) NULL,
- *    `filesize` int(11) unsigned default NULL,
- *    `created` datetime default NULL,
- *    `modified` datetime default NULL,
- *    PRIMARY KEY  (`id`) ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+ *		CREATE TABLE `images` (
+ *			`id` int(8) unsigned NOT NULL auto_increment,
+ *			`filename` varchar(255) default NULL,
+ *			`dir` varchar(255) default NULL,
+ *			`mimetype` varchar(255) NULL,
+ *			`filesize` int(11) unsigned default NULL,
+ *			`created` datetime default NULL,
+ *			`modified` datetime default NULL,
+ *			PRIMARY KEY  (`id`)
+ *		) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
  * 4) In your model that you want to have the upload behavior work, place the below code.  This example is for an Image model:
  *
  * var $actsAs = array('Upload' => array(
@@ -45,6 +48,14 @@
  * to the thumbfiles (i.e. image_001.jpg will produced thumb.small.image_001.jpg, thumb.medium.image_001.jpg, etc)
  *
  * 5) Create your upload view, make sure it's a multipart/form-data form, and the filename field is of type $form->file
+ *		<?
+ *			echo $form->create('Upload', array('type' => 'file'));
+ *				echo $form->input('filename', array('type' => 'file'));
+ *				echo $form->input('dir', array('type' => 'hidden'));
+ *				echo $form->input('mimetype', array('type' => 'hidden'));
+ *				echo $form->input('filesize', array('type' => 'hidden'));
+ *			echo $form->end('Submit');
+ *		?>
  * 6) Make sure your directory is at least CHMOD 775, also check your php.ini MAX_FILE_SIZE is enough to support the filesizes you are uploading
  *
  * Version Details
