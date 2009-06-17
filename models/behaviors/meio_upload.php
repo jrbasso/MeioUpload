@@ -1,18 +1,26 @@
 <?php
 /**
  * MeioUpload Behavior
- * This behavior is based on Tane Piper's improved uplaod behavior (http://digitalspaghetti.tooum.net/switchboard/blog/2497:Upload_Behavior_for_CakePHP_12)
- * @author Vinicius Mendes (vbmendes@gmail.com)
- * @link http://www.meiocodigo.com
- * @filesource http://www.meiocodigo.com/meioupload
- * @version 1.0.1
- * @lastmodified 2008-10-04
+ * 
+ * This behavior is based on Vincius Mendes'  MeioUpload Behavior
+ *  (http://www.meiocodigo.com/projects/meioupload/)
+ * Which is in turn based upon Tane Piper's improved uplaod behavior
+ *  (http://digitalspaghetti.tooum.net/switchboard/blog/2497:Upload_Behavior_for_CakePHP_12)
+ * 
+ * @author Jose Diaz-Gonzalez (support@savant.be)
+ * @package app
+ * @subpackage app.models.behaviors
+ * @filesource http://github.com/josegonzalez/MeioUpload/tree/master
+ * @version 1.6.1
+ * @lastmodified 2009-07-17
  *
  * Usage:
  * 1) Download this behavior and place it in your models/behaviors/meio_upload.php
+ * 
  * 2) If you require thumbnails for image generation, download the latest copy of 
  *     phpThumb and extract it into your vendors directory. Should end up like: /vendors/phpThumb/{files}.
  *    (http://phpthumb.sourceforge.net)
+ * 
  * 3) Insert the following SQL into your database.  This is a basic model you can expand on:
  *		CREATE TABLE `images` (
  *			`id` int(8) unsigned NOT NULL auto_increment,
@@ -24,22 +32,30 @@
  *			`modified` datetime default NULL,
  *			PRIMARY KEY  (`id`)
  *		) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+ * 
  * 4) In your model that you want to have the upload behavior work, place the below code.  This example is for an Image model:
  *
- * var $actsAs = array('Upload' => array(
- *       'filename' => array(
- *           'dir' => 'files/images',
- *           'create_directory' => false,
- *           'allowed_mime' => array('image/jpeg', 'image/pjpeg', 'image/gif', 'image/png'),
- *           'allowed_ext' => array('.jpg', '.jpeg', '.png', '.gif'),
- *           'thumbsizes' => array(
- *                  'small'  => array('width'=>100, 'height'=>100),
- *                  'medium' => array('width'=>220, 'height'=>220),
- *                  'large'  => array('width'=>800, 'height'=>600)
- *           )
- *       )
- *     )
- * );
+ *		var $actsAs = array(
+ *			'MeioUpload' => array(
+ *				'filename' => array(
+ *					'dir' => 'files/images',
+ *					'create_directory' => false,
+ *					'max_size' => 2097152,
+ *					'max_dimension' => 'w',
+ *					'thumbnailQuality' => 50,
+ *					'useImageMagick' => true,
+ *					'imageMagickPath' => '/usr/bin/convert',
+ *					'allowed_mime' => array( 'image/gif', 'image/jpeg', 'image/pjpeg', 'image/png'),
+ *					'allowed_ext' => array('.jpg', '.jpeg', '.png', '.gif'),
+ *					'thumbsizes' => array(
+ *						'small'  => array('width' => 100, 'height' => 100),
+ *						'medium' => array('width' => 220, 'height' => 220),
+ *						'large'  => array('width' => 800, 'height' => 600)
+ *					),
+ *				)
+ *			)
+ *		);
+ * 
  * The above code will save the uploaded file's name in the 'filename' field in database,
  * it will not overwrite existing files, instead it will create a new filename based on the original
  * plus a counter.
@@ -56,10 +72,27 @@
  *				echo $form->input('filesize', array('type' => 'hidden'));
  *			echo $form->end('Submit');
  *		?>
+ * 
  * 6) Make sure your directory is at least CHMOD 775, also check your php.ini MAX_FILE_SIZE is enough to support the filesizes you are uploading
  *
  * Version Details
- *
+ * 
+ * 1.6.1
+ * + Imported most of the code changes to jrBasso's repository
+ * + Better documentation
+ * + Code is more regularly formatted
+ * + Improvements to validation
+ * + Internationalization support
+ * 
+ * 1.6
+ * + Added "'last' => true" to validations so that your error is most pertinent to the actual error
+ * 
+ * 1.5
+ * + Replaced createthumb() with createThumbnail(), now uses phpThumb
+ * + Added option for whether model should use imageMagick and imageMagick path
+ * + Quality of thumbnails can now be set, default to 75 if not set
+ * + Allows user to set a max dimension (h or w)
+ * 
  * 1.0.1
  * + Fixed a bug in the create folder method
  * + Now you can use the $validate var of the model to apply the changes to default validation rules;
