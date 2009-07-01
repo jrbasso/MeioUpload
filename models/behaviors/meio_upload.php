@@ -138,58 +138,58 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $defaultValidations = array(
 		'FieldName' => array(
 			'rule' => array('uploadCheckFieldName'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'Dir' => array(
 			'rule' => array('uploadCheckDir'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'Empty' => array(
 			'rule' => array('uploadCheckEmpty'),
 			'check' => true,
-			'on' => 'create'
+			'on' => 'create',
 			'last' => true
 		),
 		'UploadError' => array(
 			'rule' => array('uploadCheckUploadError'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'MaxSize' => array(
 			'rule' => array('uploadCheckMaxSize'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'InvalidMime' => array(
 			'rule' => array('uploadCheckInvalidMime'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'InvalidExt' => array(
 			'rule' => array('uploadCheckInvalidExt'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'MinWidth' => array(
 			'rule' => array('uploadCheckMinWidth'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'MaxWidth' => array(
 			'rule' => array('uploadCheckMaxWidth'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'MinHeight' => array(
 			'rule' => array('uploadCheckMinHeight'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 		'MaxHeight' => array(
 			'rule' => array('uploadCheckMaxHeight'),
-			'check' => true
+			'check' => true,
 			'last' => true
 		),
 	);
