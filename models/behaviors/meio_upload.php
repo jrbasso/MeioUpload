@@ -905,7 +905,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			array(
 				'thumbWidth' => 150, 
 				'thumbHeight' => 225, 
-				'maxDimension' => ''
+				'maxDimension' => '')
 				$params);
 		
 		// Import phpThumb class
