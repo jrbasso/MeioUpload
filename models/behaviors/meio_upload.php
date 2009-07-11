@@ -567,7 +567,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (count($options['allowed_ext']) > 0) {
 					$matches = 0;
 					foreach ($options['allowed_ext'] as $extension) {
-						if (substr($field['name'], -strlen($extension)) == $extension) {
+						if (strtolower(substr($field['name'], -strlen($extension))) == strtolower($extension)) {
 							$matches++;
 						}
 					}
