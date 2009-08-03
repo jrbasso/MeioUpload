@@ -270,7 +270,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__fields = array();
 		foreach ($config as $field => $options) {
 			// Check if given field exists
-			if (!$model->hasField($field)) {
+ 			if ($config[$field]['table'] == true && !$model->hasField($field)) {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
 			}
 
