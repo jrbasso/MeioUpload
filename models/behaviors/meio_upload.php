@@ -786,6 +786,18 @@ class MeioUploadBehavior extends ModelBehavior {
 				// If the file is an image, try to make the thumbnails
 				if (count($options['allowed_ext']) > 0 && in_array($model->data[$model->name][$fieldName]['type'], array('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png'))) {
 					foreach ($options['thumbsizes'] as $key => $value) {
+						// Create the directory if it doesn't exist
+						App::import('Core', 'Folder');
+						$folder = new Folder();
+						if (!$folder->cd(APP . "webroot" . DS . $options['dir'])) {
+							$folder->mkdir(APP . "webroot" . DS . $options['dir']);
+						}
+						if (!$folder->cd(APP . "webroot" . DS . $options['dir'] . DS . 'thumb')) {
+							$folder->mkdir(APP . "webroot" . DS . $options['dir'] . DS . 'thumb');
+						}
+						if (!$folder->cd(APP . "webroot" . DS . $options['dir'] . DS .'thumb' . DS . $key)) {
+							$folder->mkdir(APP . "webroot" . DS . $options['dir'] . DS . 'thumb' . DS . $key);
+						}
 						// If a 'normal' thumbnail is set, then it will overwrite the original file
 						if($key == 'normal'){
 							$thumbSaveAs = $saveAs;
