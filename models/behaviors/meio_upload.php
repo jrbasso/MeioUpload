@@ -109,7 +109,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * The default options for the behavior
 	 */
 	var $defaultOptions = array(
-		'dir' => '',
+		'dir' => 'uploads{DS}{model}',
 		'table' => true,
 		'fieldToSaveAs' => null,
 		'allowed_mime' => array(),
@@ -297,23 +297,18 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 			// Process the max_size if it is not numeric
 			$options['max_size'] = $this->sizeToBytes($options['max_size']);
+
+			// Replace tokens of the dir, check it doesn't have a DS on the end
+			$options['dir'] = rtrim($this->replaceTokens($options['dir'], $field), DS);
+
+			// Replace tokens in the fields names. <- I have no idea why there would be tokens in the field names! Can we scrap this?
+			if ($options['table']) {
+				foreach ($options['fields'] as $fieldToken => $fieldName) {
+					$options['fields'][$fieldToken] = $this->replaceTokens($fieldName, $field);
+				}
+			}
+
 			$this->__fields[$field] = $options;
-
-			// Generate temporary directory if none provided
-			if (empty($options['dir'])) {
-				$this->__fields[$field]['fields']['dir'] = 'uploads' . DS . $model->name;
-			// Else replace the tokens of the dir.
-			} else {
-				$this->__fields[$field]['fields']['dir'] = $this->replaceTokens($options['dir'], $field);
-			}
-
-			// Replace tokens in the fields names.
-			foreach ($this->__fields[$field]['fields'] as $fieldToken => $fieldName) {
-				$this->__fields[$field]['fields'][$fieldToken] = $this->replaceTokens($fieldName, $field);
-			}
-
-			// Check that the given directory does not have a DS on the end
-			$options['dir'] = rtrim($options['dir'], DS);
 		}
 	}
 
