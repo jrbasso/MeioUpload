@@ -269,13 +269,19 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__model = $model;
 		$this->__fields = array();
 		foreach ($config as $field => $options) {
-			// Check if given field exists
- 			if ($config[$field]['table'] == true && !$model->hasField($field)) {
-				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
+			// Inherit model's lack of table use if not set in options
+			if (!isset($options['table']) && !$model->useTable) {
+				$options['table'] = false;
 			}
 
 			// Merge given options with defaults
 			$options = $this->arrayMerge($this->defaultOptions, $options);
+
+			// Check if given field exists
+ 			if ($options['table'] && !$model->hasField($field)) {
+				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
+			}
+
 			// Including the default name to the replacements
 			if ($options['default']) {
 				if (!preg_match('/^.+\..+$/', $options['default'])) {
