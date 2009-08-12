@@ -1,12 +1,12 @@
-# MeioUpload Behavior
+# MeioUpload Behavior Plugin
 
 This behavior provides to upload files in your application, as well as the possibility to translate the error message (originally only in portuguese) and the use of phpThumb as a better thumbnail generator.
 
 
 ## Installation
-- Clone from github : in your behaviors directory type `git clone git://github.com/josegonzalez/MeioUpload.git meio_upload`
-- Add as a git submodule : in your behaviors directory type `git submodule add git://github.com/josegonzalez/MeioUpload.git meio_upload`
-- Download an archive from github and extract it in `/app`
+- Clone from github : in your behaviors directory type `git clone git://github.com/josegonzalez/MeioUpload.git plugins/meio_upload`
+- Add as a git submodule : in your behaviors directory type `git submodule add git://github.com/josegonzalez/MeioUpload.git plugins/meio_upload`
+- Download an archive from github and extract it in `plugins/meio_upload`
 
 # Usage
 In a model that needs uploading, replace the class declaration with :
@@ -15,7 +15,7 @@ In a model that needs uploading, replace the class declaration with :
     class Image extends AppModel {
         ...
             var $actsAs = array(
-                'MeioUpload' => array(
+                'MeioUpload.MeioUpload' => array(
                     'filename' => array(
                         'dir' => 'files/images',
                         'create_directory' => false,
