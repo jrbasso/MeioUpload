@@ -11,8 +11,8 @@
  * @package app
  * @subpackage app.models.behaviors
  * @filesource http://github.com/josegonzalez/MeioUpload/tree/master
- * @version 1.6.1
- * @lastmodified 2009-07-17
+ * @version 1.6.2
+ * @lastmodified 2009-07-20
  *
  * Usage:
  * 1) Download this behavior and place it in your models/behaviors/meio_upload.php
@@ -905,7 +905,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			array(
 				'thumbWidth' => 150, 
 				'thumbHeight' => 225, 
-				'maxDimension' => '')
+				'maxDimension' => ''),
 				$params);
 		
 		// Import phpThumb class
