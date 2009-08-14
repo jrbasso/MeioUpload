@@ -27,7 +27,7 @@ In a model that needs uploading, replace the class declaration with :
                         'allowed_mime' => array( 'image/gif', 'image/jpeg', 'image/pjpeg', 'image/png'),
                         'allowed_ext' => array('.jpg', '.jpeg', '.png', '.gif'),
                         'thumbsizes' => array(
-                            'small'  => array('width' => 100, 'height' => 100),
+                            'small'  => array('width' => 100, 'height' => 100, 'thumbnailQuality' => 30),
                             'medium' => array('width' => 220, 'height' => 220),
                             'large'  => array('width' => 800, 'height' => 600)
                         ),

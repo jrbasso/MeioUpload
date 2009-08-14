@@ -49,7 +49,7 @@
  *					'allowed_ext' => array('.jpg', '.jpeg', '.png', '.gif'),
  *					'thumbsizes' => array(
  *						'small'  => array('width' => 100, 'height' => 100),
- *						'medium' => array('width' => 220, 'height' => 220),
+ *						'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 80),
  *						'large'  => array('width' => 800, 'height' => 600)
  *					),
  *				)
@@ -76,7 +76,10 @@
  * 6) Make sure your directory is at least CHMOD 775, also check your php.ini MAX_FILE_SIZE is enough to support the filesizes you are uploading
  *
  * Version Details
- * 
+ *
+ * 1.7
+ * + Thumb quality can be configured to each thumbsize
+ *
  * 1.6.1
  * + Imported most of the code changes to jrBasso's repository
  * + Better documentation
@@ -806,11 +809,18 @@ class MeioUploadBehavior extends ModelBehavior {
 						} else {
 							$thumbSaveAs = $options['dir'].DS.'thumb'. DS . $key. DS .$model->data[$model->name][$options['fieldToSaveAs']] . '.' . $sub;
 						}
+
+                        $params = array(
+                            'thumbWidth' => $value['width'],
+                            'thumbHeight' => $value['height']
+                        );
 						if (isset($value['max_dimension'])) {
-							$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, array('thumbWidth' => $value['width'], 'thumbHeight' => $value['height'], 'maxDimension' => $value['max_dimension']));
-						} else {
-							$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, array('thumbWidth' => $value['width'], 'thumbHeight' => $value['height']));
+                            $params['maxDimension'] = $value['max_dimension'];
 						}
+                        if (isset($value['thumbnailQuality'])) {
+                            $params['thumbnailQuality'] = $value['thumbnailQuality'];
+                        }
+                        $this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
 					}
 				}
 				unset($model->data[$model->name][$fieldName]);
@@ -867,11 +877,17 @@ class MeioUploadBehavior extends ModelBehavior {
 						} else {
 							$thumbSaveAs = $options['dir'].DS.'thumb.'.$key.'.'.$model->data[$model->name][$fieldName]['name'];
 						}
+                        $params = array(
+                            'thumbWidth' => $value['width'],
+                            'thumbHeight' => $value['height']
+                        );
 						if (isset($value['max_dimension'])) {
-							$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, array('thumbWidth' => $value['width'], 'thumbHeight' => $value['height'], 'maxDimension' => $value['max_dimension']));
-						} else {
-							$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, array('thumbWidth' => $value['width'], 'thumbHeight' => $value['height']));
+                            $params['maxDimension'] = $value['max_dimension'];
 						}
+                        if (isset($value['thumbnailQuality'])) {
+                            $params['thumbnailQuality'] = $value['thumbnailQuality'];
+                        }
+                        $this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
 					}
 				}
 
@@ -952,14 +968,17 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * @param String source file name (without path)
 	 * @param String target file name (without path)
 	 * @param String path to source and destination (no trailing DS)
+	 * @param Array additional informations
 	 */
 	function createThumbnail($source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
 			array(
 				'thumbWidth' => 150, 
 				'thumbHeight' => 225, 
-				'maxDimension' => ''),
-				$params);
+				'maxDimension' => '',
+                'thumbnailQuality' => $this->__fields[$fieldName]['thumbnailQuality']
+            ),
+			$params);
 		
 		// Import phpThumb class
 		App::import('Vendor','phpthumb', array('file' => 'phpThumb'.DS.'phpthumb.class.php'));
@@ -968,7 +987,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$phpThumb = new phpthumb;
 		$phpThumb->setSourceFilename($source);
 		
-		if (($params['maxDimension'] != 'h') | ($params['maxDimension'] != 'w')) {
+		if (($params['maxDimension'] != 'h') || ($params['maxDimension'] != 'w')) {
 			$phpThumb->w = $params['thumbWidth'];
 			$phpThumb->h = $params['thumbHeight'];
 		} else {
@@ -979,7 +998,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 		}
 		$phpThumb->setParameter('zc', $this->__fields[$fieldName]['zoomCrop']);
-		$phpThumb->q = $this->__fields[$fieldName]['thumbnailQuality'];
+		$phpThumb->q = $params['thumbnailQuality'];
 
 		$imageArray = explode(".", $source);
 		$phpThumb->config_output_format = $imageArray[1];
