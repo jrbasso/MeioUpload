@@ -2,7 +2,7 @@
 
 This behavior provides to upload files in your application, as well as the possibility to translate the error message (originally only in portuguese) and the use of phpThumb as a better thumbnail generator.
 
-You can also use it in No-DB mode, which means that no data for the upload is stored within the database. You can further this by setting `var $useTable = false` in the model, which will both trigger No-DB mode AND allow quick uploads
+You can also use it in No-DB mode, which means that no data for the upload is stored within the database. You can further this by setting `var $useTable = false` in the model, which will both trigger No-DB mode AND allow quick uploads.
 
 
 ## Installation
