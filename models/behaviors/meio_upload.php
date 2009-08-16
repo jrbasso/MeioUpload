@@ -58,8 +58,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $defaultOptions = array(
 		'useTable' => true,
 		'createDirectory' => true,
-		'dir' => 'uploads{DS}{model}{DS}{field}',
-		'fieldToSaveAs' => null, // Can also be a token, {model} or {field}
+		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
+		'folderAsField' => null, // Can be the name of any field in $this->data
+		'uploadName' => null, // Can also be the tokens {ModelName} or {fieldName}
 		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
@@ -266,9 +267,9 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			$options['maxSize'] = $this->_sizeToBytes($options['maxSize']);
 
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
-			$tokens = array('{model}', '{field}', '{DS}', '/', '\\');
+			$tokens = array('{ModelName}', '{fieldName}', '{DS}', '/', '\\');
 			$options['dir'] = rtrim($this->_replaceTokens($options['dir'], $field, $tokens), DS);
-			$options['fieldToSaveAs'] = rtrim($this->_replaceTokens($options['fieldToSaveAs'], $field, $tokens), DS);
+			$options['uploadName'] = rtrim($this->_replaceTokens($options['uploadName'], $field, $tokens), DS);
 
 			// Replace tokens in the fields names
 			if ($options['useTable']) {
@@ -667,11 +668,17 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 		foreach ($this->__fields as $fieldName => $options) {
 			$pos = strrpos($data[$model->name][$fieldName]['type'], '/');
 			$sub = substr($data[$model->name][$fieldName]['type'], $pos+1);
+
+			// Put in a subfolder if the user wishes it
+			if (isset($options['folderAsField']) && !empty($options['folderAsField']) && is_string($options['folderAsField'])) {
+				$options['dir'] = $options['dir'] . DS . $data[$model->name][$options['folderAsField']];
+			}
+
 			// Check whether or not the behavior is in useTable mode
 			if ($options['useTable'] == false) {
 				$this->_includeDefaultReplacement($options['default']);
 				$this->_fixName($fieldName, false);
-				$saveAs = $options['dir'] . DS . $data[$model->name][$options['fieldToSaveAs']] . '.' . $sub;
+				$saveAs = $options['dir'] . DS . $data[$model->name][$options['uploadName']] . '.' . $sub;
 
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->name][$fieldName]['tmp_name'], $saveAs);
@@ -685,7 +692,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						// Create the directory if it doesn't exist
 						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
-						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['fieldToSaveAs']], $sub);
+						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['uploadName']], $sub);
 						$params = array(
 							'thumbWidth' => $value['width'],
 							'thumbHeight' => $value['height']
@@ -737,8 +744,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						// Create the directory if it doesn't exist
 						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
-						if (isset($options['fieldToSaveAs']) && !empty($options['fieldToSaveAs'])) {
-							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['fieldToSaveAs']], $sub);
+						if (isset($options['uploadName']) && !empty($options['uploadName'])) {
+							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['uploadName']], $sub);
 						} else {
 							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$fieldName]['name']);
 						}
@@ -819,7 +826,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 		// Creating thumbnail
 		if ($phpThumb->GenerateThumbnail()) {
 			if (!$phpThumb->RenderToFile($target)) {
-				$this->addError('Could not render image to: '.$target);
+				$this->_addError('Could not render image to: '.$target);
 			}
 		}
 	}
@@ -850,7 +857,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 	}
 
 /**
- * Replaces some tokens. {model} to the underscore version of the model name, {field} to the field name, {DS}. / or \ to DS constant value.
+ * Replaces some tokens. {ModelName} to the underscore version of the model name
+ * {fieldName} to the field name, {DS}. / or \ to DS constant value.
  *
  * @param $string String
  * @param $fieldName String
@@ -1142,7 +1150,7 @@ function _copyFileFromTemp($tmpName, $saveAs) {
  * @return void
  * @author Jose Diaz-Gonzalez
  **/
-	function addError($msg) {
+	function _addError($msg) {
 		$this->errors[] = $msg; 
 	}
 }
