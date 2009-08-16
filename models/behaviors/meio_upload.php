@@ -49,6 +49,7 @@
  * 1.0
  * + Initial release.
  */
+App::import('Core', 'File');
 App::import('Core', 'Folder');
 class MeioUploadBehavior extends ModelBehavior {
 /**
@@ -57,21 +58,21 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $defaultOptions = array(
 		'useTable' => true,
 		'createDirectory' => true,
-		'dir' => 'uploads{DS}{model}',
-		'fieldToSaveAs' => '{model}', // Can also be a token, {model} or {field}
+		'dir' => 'uploads{DS}{model}{DS}{field}',
+		'fieldToSaveAs' => null, // Can also be a token, {model} or {field}
 		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'default' => false, // Not sure what this does
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
-		'useThumbnails' => true,
+		'thumbnails' => true,
 		'thumbsizes' => array(
 				'small'  => array('width' => 100, 'height' => 100, 'thumbnailQuality' => 75),
 				'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 75),
 				'large'  => array('width' => 800, 'height' => 600, 'thumbnailQuality' => 75)
 			),
 		'thumbnailQuality' => 75, // Global Thumbnail Quality
-		'maxDimension' => null, // Can be null or w
+		'maxDimension' => null, // Can be null, h, or w
 		'useImageMagick' => false,
 		'imageMagickPath' => '/usr/bin/convert', // Path to imageMagick on your server
 		'fields' => array(
@@ -174,6 +175,13 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $__filesToRemove = array();
 
 /**
+ * Array of all possible images that can be converted to thumbnails
+ *
+ * @var array
+ **/
+var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
+
+/**
  * Constructor
  *
  * @author Juan Basso
@@ -209,15 +217,15 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Setup the behavior. It stores a reference to the model, merges the default options with the options for each field, and setup the validation rules.
  *
- * @author Vinicius Mendes
- * @return null
  * @param $model Object
- * @param $config Array[optional]
+ * @param $settings Array[optional]
+ * @return null
+ * @author Vinicius Mendes
  */
-	function setup(&$model, $config = array()) {
+	function setup(&$model, $settings = array()) {
 		$this->__model = $model;
 		$this->__fields = array();
-		foreach ($config as $field => $options) {
+		foreach ($settings as $field => $options) {
 			// Check if they even PASSED IN parameters
 			if (!is_array($options)) {
 				// You jerks!
@@ -276,8 +284,8 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Sets the validation rules for each field.
  *
- * @return true
  * @param $model Object
+ * @return true
  */
 	function beforeValidate(&$model) {
 		foreach ($this->__fields as $fieldName => $options) {
@@ -287,134 +295,41 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Uploads the files before saving the record.
+ * Initializes the upload
  *
- * @author Vinicius Mendes
  * @param $model Object
- */
+ * @return boolean Whether the upload completed
+ * @author Jose Diaz-Gonzalez
+ **/
 	function beforeSave(&$model) {
-		foreach ($this->__fields as $fieldName => $options) {
-			if ($options['useTable'] == false) {
-				$pos = strrpos($model->data[$model->name][$fieldName]['type'], '/');
-				$sub = substr($model->data[$model->name][$fieldName]['type'], $pos+1);
-				$this->_includeDefaultReplacement($options['default']);
-				$this->_fixName($fieldName, false);
-				$saveAs = $options['dir'] . DS . $model->data[$model->name][$options['fieldToSaveAs']] . '.' . $sub;
-
-				// Attempt to move uploaded file
-				if (!move_uploaded_file($model->data[$model->name][$fieldName]['tmp_name'], $saveAs)) {
-					$model->validationErrors[$field] = __d('meio_upload', 'Problems in the copy of the file.', true);
-					return false;
+		$result = $this->_uploadFile($model);
+		if (is_bool($result)) {
+			return $result;
+		} elseif (is_array($result)) {
+			if ($result['return'] === false) {
+				// Upload failed, lets see why
+				switch($result['reason']) {
+					case 'validation':
+						$model->validationErrors[$result['extra']['field']] = $result['extra']['error'];
+						break;
 				}
-
-				// If the file is an image, try to make the thumbnails
-				if (count($options['allowedExt']) > 0 && in_array($model->data[$model->name][$fieldName]['type'], array('image/gif', 'image/jpeg', 'image/pjpeg', 'image/png'))) {
-					foreach ($options['thumbsizes'] as $key => $value) {
-						// Create the directory if it doesn't exist
-						$this->_createThumbnailFolders($options['dir'], $key);
-
-						// Generate the name for the thumbnail
-						// If a 'normal' thumbnail is set, then it will overwrite the original file
-						$thumbSaveAs = $this->_getThumbnailName();
-
-						$params = array(
-							'thumbWidth' => $value['width'],
-							'thumbHeight' => $value['height']
-						);
-						if (isset($value['maxDimension'])) {
-							$params['maxDimension'] = $value['maxDimension'];
-						}
-						if (isset($value['thumbnailQuality'])) {
-							$params['thumbnailQuality'] = $value['thumbnailQuality'];
-						}
-						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
-					}
-				}
-				unset($model->data[$model->name][$fieldName]);
-				unset($model->data[$model->name][$options['fields']['dir']]);
-				unset($model->data[$model->name][$options['fields']['filesize']]);
-				unset($model->data[$model->name][$options['fields']['mimetype']]);
+				return false;
 			} else {
-				// if the file is marked to be deleted, use the default or set the field to null
-				if (!empty($model->data[$model->name][$fieldName]['remove'])) {
-					if ($options['default']) {
-						$model->data[$model->name][$fieldName] = $options['default'];
-					} else {
-						$model->data[$model->name][$fieldName] = null;
-					}
-					//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
-					if (!empty($model->data[$model->name][$model->primaryKey])) {
-						$this->_setFileToRemove($fieldName);
-					}
-					continue;
-				}
-
-				// If no file has been upload, then unset the field to avoid overwriting existant file
-				if (!isset($model->data[$model->name][$fieldName]) || !is_array($model->data[$model->name][$fieldName]) || empty($model->data[$model->name][$fieldName]['name'])) {
-					if (!empty($model->data[$model->name][$model->primaryKey]) || !$options['default']) {
-						unset($model->data[$model->name][$fieldName]);
-					} else {
-						$model->data[$model->name][$fieldName] = $options['default'];
-					}
-					continue;
-				}
-				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
-				if (!empty($model->data[$model->name][$model->primaryKey])) {
-					$this->_setFileToRemove($fieldName);
-				}
-
-				// Fix the filename, removing bad characters and avoiding from overwriting existing ones
-				$this->_includeDefaultReplacement($options['default']);
-				$this->_fixName($fieldName);
-				$saveAs = $options['dir'].DS.$model->data[$model->name][$fieldName]['name'];
-
-				// Attempt to move uploaded file
-				if (!move_uploaded_file($model->data[$model->name][$fieldName]['tmp_name'], $saveAs)) {
-					$model->validationErrors[$field] = __d('meio_upload', 'Problems in the copy of the file.', true);
-					return false;
-				}
-
-				// If the file is an image, try to make the thumbnails
-				if (count($options['allowedExt']) > 0 && in_array($model->data[$model->name][$fieldName]['type'], array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'))) {
-					foreach ($options['thumbsizes'] as $key => $value) {
-						// If a 'normal' thumbnail is set, then it will overwrite the original file
-						if($key == 'normal'){
-							$thumbSaveAs = $saveAs;
-						// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
-						} else {
-							$thumbSaveAs = $options['dir'].DS.'thumb.'.$key.'.'.$model->data[$model->name][$fieldName]['name'];
-						}
-						$params = array(
-							'thumbWidth' => $value['width'],
-							'thumbHeight' => $value['height']
-							);
-						if (isset($value['maxDimension'])) {
-							$params['maxDimension'] = $value['maxDimension'];
-						}
-						if (isset($value['thumbnailQuality'])) {
-							$params['thumbnailQuality'] = $value['thumbnailQuality'];
-						}
-						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
-					}
-				}
-
-				// Update model data
-				$model->data[$model->name][$options['fields']['dir']] = $options['dir'];
-				$model->data[$model->name][$options['fields']['mimetype']] = $model->data[$model->name][$fieldName]['type'];
-				$model->data[$model->name][$options['fields']['filesize']] = $model->data[$model->name][$fieldName]['size'];
-				$model->data[$model->name][$fieldName] = $model->data[$model->name][$fieldName]['name'];
+				$this->data = $result['data'];
+				return true;
 			}
+		} else {
+			return false;
 		}
-		return true;
 	}
 
 /**
- * Deletes the files marked to be deleted in the save method. 
+ * Deletes the files marked to be deleted in the save method.
  * A file can be marked to be deleted if it is overwriten by
  * another or if the user mark it to be deleted.
  *
- * @author Vinicius Mendes
  * @param $model Object
+ * @author Vinicius Mendes
  */
 	function afterSave(&$model) {
 		foreach ($this->__filesToRemove as $file) {
@@ -427,10 +342,40 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
+ * Performs a manual upload
+ *  
+ * @param $model Object
+ * @param $data Array data to be saved
+ * @return boolean Whether the upload completed
+ * @author Jose Diaz-Gonzalez
+ **/
+	function upload(&$model, $data) {
+		$result = $this->_uploadFile($model, $data);
+		if (is_bool($result)) {
+			return $result;
+		} elseif (is_array($result)) {
+			if ($result['return'] === false) {
+				// Upload failed, lets see why
+				switch($result['reason']) {
+					case 'validation':
+						$model->validationErrors[$result['extra']['field']] = $result['extra']['error'];
+						break;
+				}
+				return false;
+			} else {
+				$this->data = $result['data'];
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+
+/**
  * Deletes all files associated with the record beforing delete it.
  *
- * @author Vinicius Mendes
  * @param $model Object
+ * @author Vinicius Mendes
  */
 	function beforeDelete(&$model) {
 		$model->read(null, $model->id);
@@ -448,12 +393,12 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the field was declared in the MeioUpload Behavior setup
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Vinicius Mendes
  */
-	function uploadCheckFieldName(&$model, $data, $other) {
+	function uploadCheckFieldName(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$this->__model->validate[$fieldName]['FieldName']['check']) {
 				return true;
@@ -471,10 +416,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the folder exists or can be created or writable.
  *
- * @author Vinicius Mendes
  * @return boolean
  * @param $model Object
  * @param $data Array
+ * @author Vinicius Mendes
  */
 	function uploadCheckDir(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -510,10 +455,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the filename is not empty.
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Vinicius Mendes
  */
 	function uploadCheckEmpty(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -532,10 +477,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if ocurred erros in the upload.
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Vinicius Mendes
  */
 	function uploadCheckUploadError(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -552,10 +497,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the file isn't bigger then the max file size option.
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Vinicius Mendes
  */
 	function uploadCheckMaxSize(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -573,10 +518,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the file is of an allowed mime-type.
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Vinicius Mendes
  */
 	function uploadCheckInvalidMime(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -594,10 +539,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the file has an allowed extension.
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Vinicius Mendes
  */
 	function uploadCheckInvalidExt(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -626,10 +571,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the min width is allowed
  *
- * @author Juan Basso
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Juan Basso
  */
 	function uploadCheckMinWidth(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -647,10 +592,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the max width is allowed
  *
- * @author Juan Basso
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Juan Basso
  */
 	function uploadCheckMaxWidth(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -668,10 +613,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the min height is allowed
  *
- * @author Juan Basso
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Juan Basso
  */
 	function uploadCheckMinHeight(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -689,10 +634,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the max height is allowed
  *
- * @author Juan Basso
- * @return boolean
  * @param $model Object
  * @param $data Array
+ * @return boolean
+ * @author Juan Basso
  */
 	function uploadCheckMaxHeight(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -708,13 +653,129 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
+ * Uploads the files
+ *
+ * @param $model Object
+ * @param $data Array Optional Containing data to be saved
+ * @return array
+ * @author Vinicius Mendes
+ */
+	function _uploadFile($model, $data = null) {
+		if (!isset($data) || !is_array($data)) {
+			$data =& $model->data;
+		}
+		foreach ($this->__fields as $fieldName => $options) {
+			$pos = strrpos($data[$model->name][$fieldName]['type'], '/');
+			$sub = substr($data[$model->name][$fieldName]['type'], $pos+1);
+			// Check whether or not the behavior is in useTable mode
+			if ($options['useTable'] == false) {
+				$this->_includeDefaultReplacement($options['default']);
+				$this->_fixName($fieldName, false);
+				$saveAs = $options['dir'] . DS . $data[$model->name][$options['fieldToSaveAs']] . '.' . $sub;
+
+				// Attempt to move uploaded file
+				$copyResults = $this->_copyFileFromTemp($data[$model->name][$fieldName]['tmp_name'], $saveAs);
+				if ($copyResults !== true) {
+					return array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+				}
+
+				// If the file is an image, try to make the thumbnails
+				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->name][$fieldName]['type'], $this->_imageTypes)) {
+					foreach ($options['thumbsizes'] as $key => $value) {
+						// Create the directory if it doesn't exist
+						$this->_createThumbnailFolders($options['dir'], $key);
+						// Generate the name for the thumbnail
+						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['fieldToSaveAs']], $sub);
+						$params = array(
+							'thumbWidth' => $value['width'],
+							'thumbHeight' => $value['height']
+						);
+						if (isset($value['maxDimension'])) {
+							$params['maxDimension'] = $value['maxDimension'];
+						}
+						if (isset($value['thumbnailQuality'])) {
+							$params['thumbnailQuality'] = $value['thumbnailQuality'];
+						}
+						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
+					}
+				}
+				$data = $this->_unsetDataFields($model->alias, $fieldName, $model->data, $options);
+				return array('return' => true, 'data' => $data);
+			} else {
+				// if the file is marked to be deleted, use the default or set the field to null
+				$this->_markForDeletion($model->alias, $model->primaryKey, $fieldName, $data, $options['default']);
+
+				// If no file has been upload, then unset the field to avoid overwriting existant file
+				if (!isset($data[$model->name][$fieldName]) || !is_array($data[$model->name][$fieldName]) || empty($data[$model->name][$fieldName]['name'])) {
+					if (!empty($data[$model->name][$model->primaryKey]) || !$options['default']) {
+						unset($data[$model->name][$fieldName]);
+					} else {
+						$data[$model->name][$fieldName] = $options['default'];
+					}
+					continue;
+				}
+
+				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
+				if (!empty($data[$model->name][$model->primaryKey])) {
+					$this->_setFileToRemove($fieldName);
+				}
+
+				// Fix the filename, removing bad characters and avoiding from overwriting existing ones
+				$this->_includeDefaultReplacement($options['default']);
+				$this->_fixName($fieldName);
+				$saveAs = $options['dir'] . DS . $data[$model->name][$fieldName]['name'];
+
+				// Attempt to move uploaded file
+				$copyResults = $this->_copyFileFromTemp($data[$model->name][$fieldName]['tmp_name'], $saveAs);
+				if ($copyResults !== true) {
+					return array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+				}
+
+				// If the file is an image, try to make the thumbnails
+				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->name][$fieldName]['type'], $this->_imageTypes)) {
+					foreach ($options['thumbsizes'] as $key => $value) {
+						// Create the directory if it doesn't exist
+						$this->_createThumbnailFolders($options['dir'], $key);
+						// Generate the name for the thumbnail
+						if (isset($options['fieldToSaveAs']) && !empty($options['fieldToSaveAs'])) {
+							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['fieldToSaveAs']], $sub);
+						} else {
+							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$fieldName]['name']);
+						}
+						$params = array(
+							'thumbWidth' => $value['width'],
+							'thumbHeight' => $value['height']
+						);
+						if (isset($value['maxDimension'])) {
+							$params['maxDimension'] = $value['maxDimension'];
+						}
+						if (isset($value['thumbnailQuality'])) {
+							$params['thumbnailQuality'] = $value['thumbnailQuality'];
+						}
+						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
+					}
+				}
+
+				// Update model data
+				$data[$model->name][$options['fields']['dir']] = $options['dir'];
+				$data[$model->name][$options['fields']['mimetype']] = $data[$model->name][$fieldName]['type'];
+				$data[$model->name][$options['fields']['filesize']] = $data[$model->name][$fieldName]['size'];
+				$data[$model->name][$fieldName] = $data[$model->name][$fieldName]['name'];
+				return array('return' => true, 'data' => $data);
+			}
+		}
+		return true;
+	}
+
+/**
  * Function to create Thumbnail images
  * 
  * @author Jose Diaz-Gonzalez
  * @param String source file name (without path)
  * @param String target file name (without path)
  * @param String path to source and destination (no trailing DS)
- * @param Array additional informations
+ * @param Array
+ * @return void
  */
 	function _createThumbnail($source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
@@ -766,10 +827,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Merges two arrays recursively
  *
- * @author Vinicius Mendes
- * @return Array
  * @param $arr Array
  * @param $ins Array
+ * @return array
+ * @author Vinicius Mendes
  */
 	function _arrayMerge($arr, $ins) {
 		if (is_array($arr)) {
@@ -791,10 +852,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Replaces some tokens. {model} to the underscore version of the model name, {field} to the field name, {DS}. / or \ to DS constant value.
  *
- * @author Vinicius Mendes
- * @return String
  * @param $string String
  * @param $fieldName String
+ * @return string
+ * @author Vinicius Mendes
  */
 	function _replaceTokens($string, $fieldName, $tokens = array()) {
 		return str_replace(
@@ -807,9 +868,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Removes the bad characters from the $filename and replace reserved words. It updates the $model->data.
  *
- * @author Vinicius Mendes
- * @return null
  * @param $fieldName String
+ * @return void
+ * @author Vinicius Mendes
  */
 	function _fixName($fieldName, $checkFile = true) {
 		// updates the filename removing the keywords thumb and default name for the field.
@@ -829,9 +890,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Include a pattern of reserved word based on a filename, and it's replacement.
  *
- * @author Vinicius Mendes
- * @return null
  * @param $default String
+ * @return void
+ * @author Vinicius Mendes
  */
 	function _includeDefaultReplacement($default) {
 		$replacements = $this->replacements;
@@ -857,9 +918,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Splits a filename in two parts: the name and the extension. Returns an array with it respectively.
  *
- * @author Vinicius Mendes
- * @return Array
  * @param $filename String
+ * @return array
+ * @author Vinicius Mendes
  */
 	function _splitFilenameAndExt($filename) {
 		$parts = explode('.', $filename);
@@ -870,26 +931,37 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * undocumented function
+ * Generate the name for the thumbnail
+ * If a 'normal' thumbnail is set, then it will overwrite the original file
  *
- * @return void
+ * @param $saveAs String name for original file
+ * @param $dir String directory for all uploads
+ * @param $key String thumbnail size
+ * @param $fieldToSaveAs String field in model to save as
+ * @param $sub String substring to append to directory for naming
+ * @return string
  * @author Jose Diaz-Gonzalez
  **/
-function _getThumbnailName($key, $dir, $fieldToSaveAs, $sub) {
+function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
+	$result = '';
 	if($key == 'normal'){
-		$thumbSaveAs = $saveAs;
+		$result = $saveAs;
 	// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
 	} else {
-		$thumbSaveAs = $options['dir'].DS.'thumb'. DS . $key. DS .$model->data[$model->name][$options['fieldToSaveAs']] . '.' . $sub;
+		$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
+		if (isset($sub)) {
+			$result .= '.' . $sub;
+		}
 	}
+	return $result;
 }
 
 /**
  * Convert a size value to bytes. For example: 2 MB to 2097152.
  *
- * @author Vinicius Mendes
- * @return int
  * @param $size String
+ * @return int
+ * @author Vinicius Mendes
  */
 	function _sizeToBytes($size) {
 		if (is_numeric($size)) {
@@ -917,10 +989,10 @@ function _getThumbnailName($key, $dir, $fieldToSaveAs, $sub) {
 /**
  * Sets the validation for each field, based on the options.
  *
- * @author Vinicius Mendes
- * @return null
  * @param $fieldName String
  * @param $options Array
+ * @return void
+ * @author Vinicius Mendes
  */
 	function _setupValidation($fieldName, $options) {
 		$options = $this->__fields[$fieldName];
@@ -941,6 +1013,8 @@ function _getThumbnailName($key, $dir, $fieldToSaveAs, $sub) {
 /**
  * Creates thumbnail folders if they do not already exist
  *
+ * @param $dir string Path to uploads
+ * @param $key string Name for particular thumbnail type
  * @return void
  * @author Jose Diaz-Gonzalez
  **/
@@ -958,11 +1032,31 @@ function _getThumbnailName($key, $dir, $fieldToSaveAs, $sub) {
 	}
 
 /**
- * Set a file to be removed in afterSave callback
+ * Copies file from temporary directory to final destination
  *
- * @author Vinicius Mendes
- * @return null
+ * @param $tmpName string full path to temporary file
+ * @param $saveAs string full path to move the file to
+ * @return mixed true is successful, error message if not
+ * @author Jose Diaz-Gonzalez
+ **/
+function _copyFileFromTemp($tmpName, $saveAs) {
+	$results = true;
+	$file = new File($tmpName, $saveAs);
+	$temp = new File($saveAs, true);
+	if (!$temp->write($file->read())) {
+		$results = __d('meio_upload', 'Problems in the copy of the file.', true);
+	}
+	$file->close();
+	$temp->close();
+	return $results;
+}
+
+/**
+ * Set a file to be removed in afterSave() callback
+ *
  * @param $fieldName String
+ * @return null
+ * @author Vinicius Mendes
  */
 	function _setFileToRemove($fieldName) {
 		$filename = $this->__model->field($fieldName);
@@ -975,26 +1069,81 @@ function _getThumbnailName($key, $dir, $fieldToSaveAs, $sub) {
 	}
 
 /**
+ * Marks files for deletion in the beforeSave() callback
+ * 
+ * @param $modelName string name of the Model
+ * @param $modelPrimaryKey string field of the Model that is the primary key
+ * @param $fieldName string name of field that holds a reference to the file
+ * @param $data array
+ * @param $default
+ * @return void
+ * @author Jose Diaz-Gonzalez
+ **/
+	function _markForDeletion($modelName, $modelPrimaryKey, $fieldName, $data, $default) {
+		if (!empty($data[$modelName][$fieldName]['remove'])) {
+			if ($default) {
+				$data[$modelName][$fieldName] = $default;
+			} else {
+				$data[$modelName][$fieldName] = null;
+			}
+			//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
+			if (!empty($data[$modelName][$modelPrimaryKey])) {
+				$this->_setFileToRemove($fieldName);
+			}
+			continue;
+		}
+	}
+
+/**
  * Delete the $filename inside the $dir and the thumbnails.
  * Returns true if the file is deleted and false otherwise.
  *
- * @author Vinicius Mendes
- * @return boolean
  * @param $filename Object
  * @param $dir Object
+ * @return boolean
+ * @author Vinicius Mendes
  */
 	function _deleteFiles($filename, $dir) {
 		$saveAs = $dir . DS . $filename;
 		if (is_file($saveAs) && !unlink($saveAs)) {
 			return false;
 		}
-		App::import('Core', 'Folder');
 		$folder = &new Folder($dir);
 		$files = $folder->find('thumb\.[a-zA-Z0-9]+\.' . $filename);
 		foreach ($files as $f) {
 			unlink($dir . DS . $f);
 		}
 		return true;
+	}
+
+/**
+ * Unsets data from $data
+ * Useful for no-db upload
+ *
+ * @param $modelName string name of the Model
+ * @param $fieldName string name of field that holds a reference to the file
+ * @param $data array
+ * @param $options array
+ * @return array
+ * @author Jose Diaz-Gonzalez
+ **/
+	function _unsetDataFields($modelName, $fieldName, $data, $options) {
+		unset($data[$modelName][$fieldName]);
+		unset($data[$modelName][$options['fields']['dir']]);
+		unset($data[$modelName][$options['fields']['filesize']]);
+		unset($data[$modelName][$options['fields']['mimetype']]);
+		return $data;
+	}
+
+/**
+ * Adds an error, legacy from the component
+ *
+ * @param $msg string error message
+ * @return void
+ * @author Jose Diaz-Gonzalez
+ **/
+	function addError($msg) {
+		$this->errors[] = $msg; 
 	}
 }
 ?>
