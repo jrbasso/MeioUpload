@@ -12,42 +12,7 @@
  * @subpackage app.models.behaviors
  * @filesource http://github.com/josegonzalez/MeioUpload/tree/master
  * @version 1.7.1
- * @lastmodified 2009-07-20
- *
- *
- * Version Details
- *
- * 1.7.1
- * + Updating docs, last version with version details in behavior file
- * 
- * 1.7
- * + Thumb quality can be configured to each thumbsize
- *
- * 1.6.1
- * + Imported most of the code changes to jrBasso's repository
- * + Better documentation
- * + Code is more regularly formatted
- * + Improvements to validation
- * + Internationalization support
- * 
- * 1.6
- * + Added "'last' => true" to validations so that your error is most pertinent to the actual error
- * 
- * 1.5
- * + Replaced createthumb() with createThumbnail(), now uses phpThumb
- * + Added option for whether model should use imageMagick and imageMagick path
- * + Quality of thumbnails can now be set, default to 75 if not set
- * + Allows user to set a max dimension (h or w)
- * 
- * 1.0.1
- * + Fixed a bug in the create folder method
- * + Now you can use the $validate var of the model to apply the changes to default validation rules;
- * + Changed the my_array_merge function, now it's part of the behavior, name arrayMerge;
- * + Allow use of {DS}, {model} and {field} constants in directory name and fields names;
- * + Fixed a bug with the replacement of the default names.
- *
- * 1.0
- * + Initial release.
+ * @lastmodified 2009-08-16
  */
 App::import('Core', 'File');
 App::import('Core', 'Folder');
