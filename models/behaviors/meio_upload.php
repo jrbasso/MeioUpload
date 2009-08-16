@@ -11,72 +11,15 @@
  * @package app
  * @subpackage app.models.behaviors
  * @filesource http://github.com/josegonzalez/MeioUpload/tree/master
- * @version 1.6.2
+ * @version 1.7.1
  * @lastmodified 2009-07-20
  *
- * Usage:
- * 1) Download this behavior and place it in your models/behaviors/meio_upload.php
- * 
- * 2) If you require thumbnails for image generation, download the latest copy of 
- *     phpThumb and extract it into your vendors directory. Should end up like: /vendors/phpThumb/{files}.
- *    (http://phpthumb.sourceforge.net)
- * 
- * 3) Insert the following SQL into your database.  This is a basic model you can expand on:
- *		CREATE TABLE `images` (
- *			`id` int(8) unsigned NOT NULL auto_increment,
- *			`filename` varchar(255) default NULL,
- *			`dir` varchar(255) default NULL,
- *			`mimetype` varchar(255) NULL,
- *			`filesize` int(11) unsigned default NULL,
- *			`created` datetime default NULL,
- *			`modified` datetime default NULL,
- *			PRIMARY KEY  (`id`)
- *		) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
- * 
- * 4) In your model that you want to have the upload behavior work, place the below code.  This example is for an Image model:
- *
- *		var $actsAs = array(
- *			'MeioUpload' => array(
- *				'filename' => array(
- *					'dir' => 'files/images',
- *					'create_directory' => false,
- *					'max_size' => 2097152,
- *					'max_dimension' => 'w',
- *					'thumbnailQuality' => 50,
- *					'useImageMagick' => true,
- *					'imageMagickPath' => '/usr/bin/convert',
- *					'allowed_mime' => array( 'image/gif', 'image/jpeg', 'image/pjpeg', 'image/png'),
- *					'allowed_ext' => array('.jpg', '.jpeg', '.png', '.gif'),
- *					'thumbsizes' => array(
- *						'small'  => array('width' => 100, 'height' => 100),
- *						'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 80),
- *						'large'  => array('width' => 800, 'height' => 600)
- *					),
- *				)
- *			)
- *		);
- * 
- * The above code will save the uploaded file's name in the 'filename' field in database,
- * it will not overwrite existing files, instead it will create a new filename based on the original
- * plus a counter.
- * Allowed Mimetypes and extentions should be pretty explanitory.
- * For thumbnails, when the file is uploaded, it will create 3 thumbnail sizes and prepend the name
- * to the thumbfiles (i.e. image_001.jpg will produced thumb.small.image_001.jpg, thumb.medium.image_001.jpg, etc)
- *
- * 5) Create your upload view, make sure it's a multipart/form-data form, and the filename field is of type $form->file
- *		<?
- *			echo $form->create('Upload', array('type' => 'file'));
- *				echo $form->input('filename', array('type' => 'file'));
- *				echo $form->input('dir', array('type' => 'hidden'));
- *				echo $form->input('mimetype', array('type' => 'hidden'));
- *				echo $form->input('filesize', array('type' => 'hidden'));
- *			echo $form->end('Submit');
- *		?>
- * 
- * 6) Make sure your directory is at least CHMOD 775, also check your php.ini MAX_FILE_SIZE is enough to support the filesizes you are uploading
  *
  * Version Details
  *
+ * 1.7.1
+ * + Updating docs, last version with version details in behavior file
+ * 
  * 1.7
  * + Thumb quality can be configured to each thumbsize
  *
@@ -112,20 +55,25 @@ class MeioUploadBehavior extends ModelBehavior {
 	 * The default options for the behavior
 	 */
 	var $defaultOptions = array(
-		'dir' => 'uploads{DS}{model}',
 		'table' => true,
-		'fieldToSaveAs' => null,
-		'allowed_mime' => array(),
-		'allowed_ext' => array(),
 		'create_directory' => true,
+		'dir' => 'uploads{DS}{model}',
+		'fieldToSaveAs' => '{model}', // Can also be a token, {model} or {field}
 		'max_size' => 2097152, // 2MB
-		'thumbsizes' => array(),
-		'default' => false,
-		'max_dimension' => null,
+		'allowed_mime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
+		'allowed_ext' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
+		'default' => false, // Not sure what this does
 		'zoomCrop' => false,
-		'thumbnailQuality' => 75,
+		'useThumbnails' => true,
+		'thumbsizes' => array(
+				'small'  => array('width' => 100, 'height' => 100, 'thumbnailQuality' => 75),
+				'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 75),
+				'large'  => array('width' => 800, 'height' => 600, 'thumbnailQuality' => 75)
+			),
+		'thumbnailQuality' => 75, // Global Thumbnail Quality
+		'max_dimension' => null, // Can be null or w
 		'useImageMagick' => false,
-		'imageMagickPath' => '/usr/bin/convert',
+		'imageMagickPath' => '/usr/bin/convert', // Path to imageMagick on your server
 		'fields' => array(
 			'dir' => 'dir',
 			'filesize' => 'filesize',
@@ -272,8 +220,16 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__model = $model;
 		$this->__fields = array();
 		foreach ($config as $field => $options) {
+			// Check if they even PASSED IN parameters
+			if (!is_array($options)) {
+				// You jerks!
+				$field = $options;
+				$options = array();
+			}
+
 			// Inherit model's lack of table use if not set in options
-			if (!isset($options['table']) && !$model->useTable) {
+			// regardless of whether or not we set the table option
+			if (!$model->useTable) {
 				$options['table'] = false;
 			}
 
@@ -281,7 +237,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			$options = $this->arrayMerge($this->defaultOptions, $options);
 
 			// Check if given field exists
- 			if ($options['table'] && !$model->hasField($field)) {
+			if ($options['table'] && !$model->hasField($field)) {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
 			}
 
@@ -292,19 +248,22 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 				$this->_includeDefaultReplacement($options['default']);
 			}
+
 			// Verifies if the thumbsizes names is alphanumeric
 			foreach ($options['thumbsizes'] as $name => $size) {
 				if (empty($name) || !ctype_alnum($name)) {
 					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
 				}
 			}
+
 			// Process the max_size if it is not numeric
 			$options['max_size'] = $this->sizeToBytes($options['max_size']);
 
-			// Replace tokens of the dir, check it doesn't have a DS on the end
+			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$options['dir'] = rtrim($this->replaceTokens($options['dir'], $field), DS);
+			$options['fieldToSaveAs'] = rtrim($this->replaceTokens($options['fieldToSaveAs'], $field), DS);
 
-			// Replace tokens in the fields names. <- I have no idea why there would be tokens in the field names! Can we scrap this?
+			// Replace tokens in the fields names
 			if ($options['table']) {
 				foreach ($options['fields'] as $fieldToken => $fieldName) {
 					$options['fields'][$fieldToken] = $this->replaceTokens($fieldName, $field);
@@ -810,17 +769,17 @@ class MeioUploadBehavior extends ModelBehavior {
 							$thumbSaveAs = $options['dir'].DS.'thumb'. DS . $key. DS .$model->data[$model->name][$options['fieldToSaveAs']] . '.' . $sub;
 						}
 
-                        $params = array(
-                            'thumbWidth' => $value['width'],
-                            'thumbHeight' => $value['height']
-                        );
+						$params = array(
+							'thumbWidth' => $value['width'],
+							'thumbHeight' => $value['height']
+						);
 						if (isset($value['max_dimension'])) {
-                            $params['maxDimension'] = $value['max_dimension'];
+							$params['maxDimension'] = $value['max_dimension'];
 						}
-                        if (isset($value['thumbnailQuality'])) {
-                            $params['thumbnailQuality'] = $value['thumbnailQuality'];
-                        }
-                        $this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
+						if (isset($value['thumbnailQuality'])) {
+							$params['thumbnailQuality'] = $value['thumbnailQuality'];
+						}
+						$this->createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
 					}
 				}
 				unset($model->data[$model->name][$fieldName]);
