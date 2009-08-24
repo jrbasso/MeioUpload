@@ -1,12 +1,12 @@
 <?php
 /**
  * MeioUpload Behavior
- * 
+ *
  * This behavior is based on Vincius Mendes'  MeioUpload Behavior
  *  (http://www.meiocodigo.com/projects/meioupload/)
  * Which is in turn based upon Tane Piper's improved uplaod behavior
  *  (http://digitalspaghetti.tooum.net/switchboard/blog/2497:Upload_Behavior_for_CakePHP_12)
- * 
+ *
  * @author Jose Diaz-Gonzalez (support@savant.be)
  * @package app
  * @subpackage app.models.behaviors
@@ -33,10 +33,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
 		'thumbnails' => true,
 		'thumbsizes' => array(
-				'small'  => array('width' => 100, 'height' => 100, 'thumbnailQuality' => 75),
-				'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 75),
-				'large'  => array('width' => 800, 'height' => 600, 'thumbnailQuality' => 75)
-			),
+			'small'  => array('width' => 100, 'height' => 100, 'thumbnailQuality' => 75),
+			'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 75),
+			'large'  => array('width' => 800, 'height' => 600, 'thumbnailQuality' => 75)
+		),
 		'thumbnailQuality' => 75, // Global Thumbnail Quality
 		'maxDimension' => null, // Can be null, h, or w
 		'useImageMagick' => false,
@@ -309,7 +309,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 /**
  * Performs a manual upload
- *  
+ *
  * @param $model Object
  * @param $data Array data to be saved
  * @return boolean Whether the upload completed
@@ -758,7 +758,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 /**
  * Function to create Thumbnail images
- * 
+ *
  * @author Jose Diaz-Gonzalez
  * @param String source file name (without path)
  * @param String target file name (without path)
@@ -769,8 +769,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 	function _createThumbnail($source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
 			array(
-				'thumbWidth' => 150, 
-				'thumbHeight' => 225, 
+				'thumbWidth' => 150,
+				'thumbHeight' => 225,
 				'maxDimension' => '',
 				'thumbnailQuality' => $this->__fields[$fieldName]['thumbnailQuality'],
 				'zoomCrop' => false
@@ -1063,7 +1063,7 @@ function _copyFileFromTemp($tmpName, $saveAs) {
 
 /**
  * Marks files for deletion in the beforeSave() callback
- * 
+ *
  * @param $modelName string name of the Model
  * @param $modelPrimaryKey string field of the Model that is the primary key
  * @param $fieldName string name of field that holds a reference to the file
@@ -1135,7 +1135,7 @@ function _copyFileFromTemp($tmpName, $saveAs) {
  * @author Jose Diaz-Gonzalez
  **/
 	function _addError($msg) {
-		$this->errors[] = $msg; 
+		$this->errors[] = $msg;
 	}
 }
 ?>
