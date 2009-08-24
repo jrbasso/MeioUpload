@@ -784,15 +784,13 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 		$phpThumb = new phpthumb;
 		$phpThumb->setSourceFilename($source);
 
-		if (($params['maxDimension'] != 'h') || ($params['maxDimension'] != 'w')) {
+		if ($params['maxDimension'] == 'w') {
 			$phpThumb->w = $params['thumbWidth'];
+		} else if ($params['maxDimension'] == 'h') {
 			$phpThumb->h = $params['thumbHeight'];
 		} else {
-			if ($params['maxDimension'] == 'w') {
-				$phpThumb->w = $params['thumbWidth'];
-			} else if ($params['maxDimension'] == 'h') {
-				$phpThumb->h = $params['thumbHeight'];
-			}
+			$phpThumb->w = $params['thumbWidth'];
+			$phpThumb->h = $params['thumbHeight'];
 		}
 
 		$phpThumb->setParameter('zc', $this->__fields[$fieldName]['zoomCrop']);
