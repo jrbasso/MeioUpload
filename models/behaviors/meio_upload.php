@@ -210,7 +210,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 			// Check if given field exists
 			if ($options['useTable'] && !$model->hasField($field)) {
-				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->name), E_USER_WARNING);
+				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->alias), E_USER_WARNING);
 			}
 
 			// Including the default name to the replacements
@@ -347,7 +347,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
 			foreach ($this->__fields as $field => $options) {
-				$file = $model->data[$model->name][$field];
+				$file = $model->data[$model->alias][$field];
 				if ($file && $file != $options['default']) {
 					$this->_deleteFiles($file, $options['dir']);
 				}
@@ -372,7 +372,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			if (isset($this->__fields[$fieldName])) {
 				return true;
 			} else {
-				$this->log(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->name));
+				$this->log(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias));
 				return false;
 			}
 		}
@@ -631,33 +631,33 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			$data =& $model->data;
 		}
 		foreach ($this->__fields as $fieldName => $options) {
-			$pos = strrpos($data[$model->name][$fieldName]['type'], '/');
-			$sub = substr($data[$model->name][$fieldName]['type'], $pos+1);
+			$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
+			$sub = substr($data[$model->alias][$fieldName]['type'], $pos+1);
 
 			// Put in a subfolder if the user wishes it
 			if (isset($options['folderAsField']) && !empty($options['folderAsField']) && is_string($options['folderAsField'])) {
-				$options['dir'] = $options['dir'] . DS . $data[$model->name][$options['folderAsField']];
+				$options['dir'] = $options['dir'] . DS . $data[$model->alias][$options['folderAsField']];
 			}
 
 			// Check whether or not the behavior is in useTable mode
 			if ($options['useTable'] == false) {
 				$this->_includeDefaultReplacement($options['default']);
 				$this->_fixName($fieldName, false);
-				$saveAs = $options['dir'] . DS . $data[$model->name][$options['uploadName']] . '.' . $sub;
+				$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']] . '.' . $sub;
 
 				// Attempt to move uploaded file
-				$copyResults = $this->_copyFileFromTemp($data[$model->name][$fieldName]['tmp_name'], $saveAs);
+				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
 					return array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
 				}
 
 				// If the file is an image, try to make the thumbnails
-				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->name][$fieldName]['type'], $this->_imageTypes)) {
+				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					foreach ($options['thumbsizes'] as $key => $value) {
 						// Create the directory if it doesn't exist
 						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
-						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['uploadName']], $sub);
+						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $sub);
 						$params = array(
 							'thumbWidth' => $value['width'],
 							'thumbHeight' => $value['height']
@@ -667,6 +667,9 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						}
 						if (isset($value['thumbnailQuality'])) {
 							$params['thumbnailQuality'] = $value['thumbnailQuality'];
+						}
+						if (isset($value['zoomCrop'])) {
+							$params['zoomCrop'] = $value['zoomCrop'];
 						}
 						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
 					}
@@ -675,44 +678,55 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return array('return' => true, 'data' => $data);
 			} else {
 				// if the file is marked to be deleted, use the default or set the field to null
-				$this->_markForDeletion($model->alias, $model->primaryKey, $fieldName, $data, $options['default']);
+				if (!empty($data[$model->alias][$fieldName]['remove'])) {
+					if ($options['default']) {
+						$data[$model->alias][$fieldName] = $options['default'];
+					} else {
+						$data[$model->alias][$fieldName] = null;
+					}
+					//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
+					if (!empty($data[$model->alias][$model->primaryKey])) {
+						$this->_setFileToRemove($fieldName);
+					}
+				}
 
 				// If no file has been upload, then unset the field to avoid overwriting existant file
-				if (!isset($data[$model->name][$fieldName]) || !is_array($data[$model->name][$fieldName]) || empty($data[$model->name][$fieldName]['name'])) {
-					if (!empty($data[$model->name][$model->primaryKey]) || !$options['default']) {
-						unset($data[$model->name][$fieldName]);
+				if (!isset($data[$model->alias][$fieldName]) || !is_array($data[$model->alias][$fieldName]) || empty($data[$model->alias][$fieldName]['name'])) {
+					if (!empty($data[$model->alias][$model->primaryKey]) || !$options['default']) {
+						unset($data[$model->alias][$fieldName]);
 					} else {
-						$data[$model->name][$fieldName] = $options['default'];
+						$data[$model->alias][$fieldName] = $options['default'];
 					}
-					continue;
 				}
 
 				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
-				if (!empty($data[$model->name][$model->primaryKey])) {
+				if (!empty($data[$model->alias][$model->primaryKey])) {
 					$this->_setFileToRemove($fieldName);
 				}
 
 				// Fix the filename, removing bad characters and avoiding from overwriting existing ones
-				$this->_includeDefaultReplacement($options['default']);
+				if ($options['default'] == true) {
+					$this->_includeDefaultReplacement($options['default']);
+				}
 				$this->_fixName($fieldName);
-				$saveAs = $options['dir'] . DS . $data[$model->name][$fieldName]['name'];
+				$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
 
 				// Attempt to move uploaded file
-				$copyResults = $this->_copyFileFromTemp($data[$model->name][$fieldName]['tmp_name'], $saveAs);
+				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
 					return array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
 				}
 
 				// If the file is an image, try to make the thumbnails
-				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->name][$fieldName]['type'], $this->_imageTypes)) {
+				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					foreach ($options['thumbsizes'] as $key => $value) {
 						// Create the directory if it doesn't exist
 						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
 						if (isset($options['uploadName']) && !empty($options['uploadName'])) {
-							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$options['uploadName']], $sub);
+							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $sub);
 						} else {
-							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->name][$fieldName]['name']);
+							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
 						}
 						$params = array(
 							'thumbWidth' => $value['width'],
@@ -724,15 +738,18 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						if (isset($value['thumbnailQuality'])) {
 							$params['thumbnailQuality'] = $value['thumbnailQuality'];
 						}
+						if (isset($value['zoomCrop'])) {
+							$params['zoomCrop'] = $value['zoomCrop'];
+						}
 						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
 					}
 				}
 
 				// Update model data
-				$data[$model->name][$options['fields']['dir']] = $options['dir'];
-				$data[$model->name][$options['fields']['mimetype']] = $data[$model->name][$fieldName]['type'];
-				$data[$model->name][$options['fields']['filesize']] = $data[$model->name][$fieldName]['size'];
-				$data[$model->name][$fieldName] = $data[$model->name][$fieldName]['name'];
+				$data[$model->alias][$options['fields']['dir']] = $options['dir'];
+				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
+				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
+				$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
 				return array('return' => true, 'data' => $data);
 			}
 		}
@@ -755,7 +772,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				'thumbWidth' => 150, 
 				'thumbHeight' => 225, 
 				'maxDimension' => '',
-				'thumbnailQuality' => $this->__fields[$fieldName]['thumbnailQuality']
+				'thumbnailQuality' => $this->__fields[$fieldName]['thumbnailQuality'],
+				'zoomCrop' => false
 			),
 			$params);
 
@@ -776,7 +794,11 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				$phpThumb->h = $params['thumbHeight'];
 			}
 		}
+
 		$phpThumb->setParameter('zc', $this->__fields[$fieldName]['zoomCrop']);
+		if (isset($params['zoomCrop'])){
+			$phpThumb->setParameter('zc', $params['zoomCrop']);
+		}
 		$phpThumb->q = $params['thumbnailQuality'];
 
 		$imageArray = explode(".", $source);
@@ -867,7 +889,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return void
  * @author Vinicius Mendes
  */
-	function _includeDefaultReplacement($default) {
+	function _includeDefaultReplacement($default) {die;
 		$replacements = $this->replacements;
 		list ($newPattern, $ext) = $this->_splitFilenameAndExt($default);
 		if (!in_array($newPattern, $this->patterns)) {
