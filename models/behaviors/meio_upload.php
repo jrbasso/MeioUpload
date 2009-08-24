@@ -1077,13 +1077,12 @@ function _copyFileFromTemp($tmpName, $saveAs) {
 			if ($default) {
 				$data[$modelName][$fieldName] = $default;
 			} else {
-				$data[$modelName][$fieldName] = null;
+				$data[$modelName][$fieldName] = '';
 			}
 			//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 			if (!empty($data[$modelName][$modelPrimaryKey])) {
 				$this->_setFileToRemove($fieldName);
 			}
-			continue;
 		}
 	}
 
