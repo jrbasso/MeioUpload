@@ -887,7 +887,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return void
  * @author Vinicius Mendes
  */
-	function _includeDefaultReplacement($default) {die;
+	function _includeDefaultReplacement($default) {
 		$replacements = $this->replacements;
 		list ($newPattern, $ext) = $this->_splitFilenameAndExt($default);
 		if (!in_array($newPattern, $this->patterns)) {
