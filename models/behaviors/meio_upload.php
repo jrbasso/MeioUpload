@@ -631,6 +631,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			$data =& $model->data;
 		}
 		foreach ($this->__fields as $fieldName => $options) {
+			if (empty($data[$model->alias][$fieldName]['name'])) {
+				unset($data[$model->alias][$fieldName]);
+				return array('return' => true, 'data' => $data); 
+			}
 			$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
 			$sub = substr($data[$model->alias][$fieldName]['type'], $pos+1);
 
