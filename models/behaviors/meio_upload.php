@@ -11,7 +11,7 @@
  * @package app
  * @subpackage app.models.behaviors
  * @filesource http://github.com/josegonzalez/MeioUpload/tree/master
- * @version 1.7.1
+ * @version 2.0.1
  * @lastmodified 2009-08-16
  */
 App::import('Core', 'File');
