@@ -281,7 +281,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				}
 				return false;
 			} else {
-				$this->data = $result['data'];
+				$model->data = $result['data'];
 				return true;
 			}
 		} else {
