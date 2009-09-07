@@ -242,7 +242,6 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 					$options['fields'][$fieldToken] = $this->_replaceTokens($fieldName, $field, $tokens);
 				}
 			}
-
 			$this->__fields[$field] = $options;
 		}
 	}
@@ -282,7 +281,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return false;
 			} else {
 				$model->data = $result['data'];
-				return true;
+				return true; 
 			}
 		} else {
 			return false;
@@ -633,7 +632,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 		foreach ($this->__fields as $fieldName => $options) {
 			if (empty($data[$model->alias][$fieldName]['name'])) {
 				unset($data[$model->alias][$fieldName]);
-				return array('return' => true, 'data' => $data); 
+				$result = array('return' => true, 'data' => $data);
+				continue;
 			}
 			$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
 			$sub = substr($data[$model->alias][$fieldName]['type'], $pos+1);
@@ -652,7 +652,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
-					return array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+					continue;
 				}
 
 				// If the file is an image, try to make the thumbnails
@@ -679,7 +680,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 					}
 				}
 				$data = $this->_unsetDataFields($model->alias, $fieldName, $model->data, $options);
-				return array('return' => true, 'data' => $data);
+				$result = array('return' => true, 'data' => $data);
+				continue;
 			} else {
 				// if the file is marked to be deleted, use the default or set the field to null
 				if (!empty($data[$model->alias][$fieldName]['remove'])) {
@@ -718,7 +720,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
-					return array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+					continue;
 				}
 
 				// If the file is an image, try to make the thumbnails
@@ -754,10 +757,15 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
 				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
 				$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
-				return array('return' => true, 'data' => $data);
+				$result = array('return' => true, 'data' => $data);
+				continue;
 			}
 		}
-		return true;
+		if (isset($result)) {
+			return $result;
+		} else {
+			return true;
+		}
 	}
 
 /**
