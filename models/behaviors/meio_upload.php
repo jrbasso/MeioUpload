@@ -189,8 +189,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @author Vinicius Mendes
  */
 	function setup(&$model, $settings = array()) {
-		$this->__model = $model;
-		$this->__fields = array();
+		$this->__fields[$model->alias] = array();
 		foreach ($settings as $field => $options) {
 			// Check if they even PASSED IN parameters
 			if (!is_array($options)) {
@@ -233,16 +232,16 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$tokens = array('{ModelName}', '{fieldName}', '{DS}', '/', '\\');
-			$options['dir'] = rtrim($this->_replaceTokens($options['dir'], $field, $tokens), DS);
-			$options['uploadName'] = rtrim($this->_replaceTokens($options['uploadName'], $field, $tokens), DS);
+			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);
+			$options['uploadName'] = rtrim($this->_replaceTokens($model, $options['uploadName'], $field, $tokens), DS);
 
 			// Replace tokens in the fields names
 			if ($options['useTable']) {
 				foreach ($options['fields'] as $fieldToken => $fieldName) {
-					$options['fields'][$fieldToken] = $this->_replaceTokens($fieldName, $field, $tokens);
+					$options['fields'][$fieldToken] = $this->_replaceTokens($model, $fieldName, $field, $tokens);
 				}
 			}
-			$this->__fields[$field] = $options;
+			$this->__fields[$model->alias][$field] = $options;
 		}
 	}
 
@@ -253,8 +252,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return true
  */
 	function beforeValidate(&$model) {
-		foreach ($this->__fields as $fieldName => $options) {
-			$this->_setupValidation($fieldName, $options);
+		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
+			$this->_setupValidation($model, $fieldName, $options);
 		}
 		return true;
 	}
@@ -281,7 +280,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return false;
 			} else {
 				$model->data = $result['data'];
-				return true; 
+				return true;
 			}
 		} else {
 			return false;
@@ -345,7 +344,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 	function beforeDelete(&$model) {
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
-			foreach ($this->__fields as $field => $options) {
+			foreach ($this->__fields[$model->alias] as $field => $options) {
 				$file = $model->data[$model->alias][$field];
 				if ($file && $file != $options['default']) {
 					$this->_deleteFiles($file, $options['dir']);
@@ -365,10 +364,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckFieldName(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['FieldName']['check']) {
+			if (!$model->validate[$fieldName]['FieldName']['check']) {
 				return true;
 			}
-			if (isset($this->__fields[$fieldName])) {
+			if (isset($this->__fields[$model->alias][$fieldName])) {
 				return true;
 			} else {
 				$this->log(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias));
@@ -388,10 +387,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckDir(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['Dir']['check']) {
+			if (!$model->validate[$fieldName]['Dir']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (empty($field['remove']) || empty($field['name'])) {
 				// Check if directory exists and create it if required
 				if (!is_dir($options['dir'])) {
@@ -427,7 +426,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckEmpty(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['Empty']['check']) {
+			if (!$model->validate[$fieldName]['Empty']['check']) {
 				return true;
 			}
 			if (empty($field['remove'])) {
@@ -449,7 +448,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckUploadError(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['UploadError']['check']) {
+			if (!$model->validate[$fieldName]['UploadError']['check']) {
 				return true;
 			}
 			if (!empty($field['name']) && $field['error'] > 0) {
@@ -469,10 +468,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckMaxSize(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['MaxSize']['check']) {
+			if (!$model->validate[$fieldName]['MaxSize']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && $field['size'] > $options['maxSize']) {
 				return false;
 			}
@@ -490,10 +489,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckInvalidMime(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['InvalidMime']['check']) {
+			if (!$model->validate[$fieldName]['InvalidMime']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && count($options['allowedMime']) > 0 && !in_array($field['type'], $options['allowedMime'])) {
 				return false;
 			}
@@ -511,10 +510,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckInvalidExt(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['InvalidExt']['check']) {
+			if (!$model->validate[$fieldName]['InvalidExt']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name'])) {
 				if (count($options['allowedExt']) > 0) {
 					$matches = 0;
@@ -543,10 +542,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckMinWidth(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['MinWidth']['check']) {
+			if (!$model->validate[$fieldName]['MinWidth']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && $options['length']['minWidth'] > 0 && imagesx($field['tmp_name']) < $options['length']['minWidth']) {
 				return false;
 			}
@@ -564,10 +563,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckMaxWidth(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['MaxWidth']['check']) {
+			if (!$model->validate[$fieldName]['MaxWidth']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && $options['length']['maxWidth'] > 0 && imagesx($field['tmp_name']) > $options['length']['maxWidth']) {
 				return false;
 			}
@@ -585,10 +584,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckMinHeight(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['MinHeight']['check']) {
+			if (!$model->validate[$fieldName]['MinHeight']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && $options['length']['minHeight'] > 0 && imagesy($field['tmp_name']) < $options['length']['minHeight']) {
 				return false;
 			}
@@ -606,10 +605,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  */
 	function uploadCheckMaxHeight(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$this->__model->validate[$fieldName]['MaxHeight']['check']) {
+			if (!$model->validate[$fieldName]['MaxHeight']['check']) {
 				return true;
 			}
-			$options = $this->__fields[$fieldName];
+			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && $options['length']['maxHeight'] > 0 && imagesy($field['tmp_name']) > $options['length']['maxHeight']) {
 				return false;
 			}
@@ -625,11 +624,11 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return array
  * @author Vinicius Mendes
  */
-	function _uploadFile($model, $data = null) {
+	function _uploadFile(&$model, $data = null) {
 		if (!isset($data) || !is_array($data)) {
 			$data =& $model->data;
 		}
-		foreach ($this->__fields as $fieldName => $options) {
+		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
 			if (empty($data[$model->alias][$fieldName]['name'])) {
 				unset($data[$model->alias][$fieldName]);
 				$result = array('return' => true, 'data' => $data);
@@ -646,7 +645,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			// Check whether or not the behavior is in useTable mode
 			if ($options['useTable'] == false) {
 				$this->_includeDefaultReplacement($options['default']);
-				$this->_fixName($fieldName, false);
+				$this->_fixName($model, $fieldName, false);
 				$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']] . '.' . $sub;
 
 				// Attempt to move uploaded file
@@ -676,7 +675,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						if (isset($value['zoomCrop'])) {
 							$params['zoomCrop'] = $value['zoomCrop'];
 						}
-						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
+						$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
 					}
 				}
 				$data = $this->_unsetDataFields($model->alias, $fieldName, $model->data, $options);
@@ -692,7 +691,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 					}
 					//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 					if (!empty($data[$model->alias][$model->primaryKey])) {
-						$this->_setFileToRemove($fieldName);
+						$this->_setFileToRemove($model, $fieldName);
 					}
 				}
 
@@ -707,14 +706,14 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 				if (!empty($data[$model->alias][$model->primaryKey])) {
-					$this->_setFileToRemove($fieldName);
+					$this->_setFileToRemove($model, $fieldName);
 				}
 
 				// Fix the filename, removing bad characters and avoiding from overwriting existing ones
 				if ($options['default'] == true) {
 					$this->_includeDefaultReplacement($options['default']);
 				}
-				$this->_fixName($fieldName);
+				$this->_fixName($model, $fieldName);
 				$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
 
 				// Attempt to move uploaded file
@@ -748,7 +747,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						if (isset($value['zoomCrop'])) {
 							$params['zoomCrop'] = $value['zoomCrop'];
 						}
-						$this->_createThumbnail($saveAs, $thumbSaveAs, $fieldName, $params);
+						$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
 					}
 				}
 
@@ -778,13 +777,13 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @param Array
  * @return void
  */
-	function _createThumbnail($source, $target, $fieldName, $params = array()) {
+	function _createThumbnail(&$model, $source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
 			array(
 				'thumbWidth' => 150,
 				'thumbHeight' => 225,
 				'maxDimension' => '',
-				'thumbnailQuality' => $this->__fields[$fieldName]['thumbnailQuality'],
+				'thumbnailQuality' => $this->__fields[$model->alias][$fieldName]['thumbnailQuality'],
 				'zoomCrop' => false
 			),
 			$params);
@@ -805,7 +804,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			$phpThumb->h = $params['thumbHeight'];
 		}
 
-		$phpThumb->setParameter('zc', $this->__fields[$fieldName]['zoomCrop']);
+		$phpThumb->setParameter('zc', $this->__fields[$model->alias][$fieldName]['zoomCrop']);
 		if (isset($params['zoomCrop'])){
 			$phpThumb->setParameter('zc', $params['zoomCrop']);
 		}
@@ -815,8 +814,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 		$phpThumb->config_output_format = $imageArray[1];
 		unset($imageArray);
 
-		$phpThumb->config_prefer_imagemagick = $this->__fields[$fieldName]['useImageMagick'];
-		$phpThumb->config_imagemagick_path = $this->__fields[$fieldName]['imageMagickPath'];
+		$phpThumb->config_prefer_imagemagick = $this->__fields[$model->alias][$fieldName]['useImageMagick'];
+		$phpThumb->config_imagemagick_path = $this->__fields[$model->alias][$fieldName]['imageMagickPath'];
 
 		// Setting whether to die upon error
 		$phpThumb->config_error_die_on_error = true;
@@ -862,10 +861,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return string
  * @author Vinicius Mendes
  */
-	function _replaceTokens($string, $fieldName, $tokens = array()) {
+	function _replaceTokens(&$model, $string, $fieldName, $tokens = array()) {
 		return str_replace(
 			$tokens,
-			array(Inflector::underscore($this->__model->name), $fieldName, DS, DS, DS),
+			array(Inflector::underscore($model->name), $fieldName, DS, DS, DS),
 			$string
 		);
 	}
@@ -877,19 +876,19 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return void
  * @author Vinicius Mendes
  */
-	function _fixName($fieldName, $checkFile = true) {
+	function _fixName(&$model, $fieldName, $checkFile = true) {
 		// updates the filename removing the keywords thumb and default name for the field.
-		list ($filename, $ext) = $this->_splitFilenameAndExt($this->__model->data[$this->__model->name][$fieldName]['name']);
+		list ($filename, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
 		$filename = str_replace($this->patterns, $this->replacements, $filename);
 		$filename = Inflector::slug($filename);
 		$i = 0;
 		$newFilename = $filename;
 		if ($checkFile) {
-			while (file_exists($this->__fields[$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
+			while (file_exists($this->__fields[$model->alias][$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
 				$newFilename = $filename . $i++;
 			}
 		}
-		$this->__model->data[$this->__model->name][$fieldName]['name'] = $newFilename . '.' . $ext;
+		$model->data[$model->alias][$fieldName]['name'] = $newFilename . '.' . $ext;
 	}
 
 /**
@@ -999,20 +998,20 @@ function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
  * @return void
  * @author Vinicius Mendes
  */
-	function _setupValidation($fieldName, $options) {
-		$options = $this->__fields[$fieldName];
+	function _setupValidation(&$model, $fieldName, $options) {
+		$options = $this->__fields[$model->alias][$fieldName];
 
-		if (isset($this->__model->validate[$fieldName])) {
-			if (isset($this->__model->validate[$fieldName]['rule'])) {
-				$this->__model->validate[$fieldName] = array(
-					'oldValidation' => $this->__model->validates[$fieldName]
+		if (isset($model->validate[$fieldName])) {
+			if (isset($model->validate[$fieldName]['rule'])) {
+				$model->validate[$fieldName] = array(
+					'oldValidation' => $model->validates[$fieldName]
 				);
 			}
 		} else {
-			$this->__model->validate[$fieldName] = array();
+			$model->validate[$fieldName] = array();
 		}
-		$this->__model->validate[$fieldName] = $this->_arrayMerge($this->defaultValidations, $this->__model->validate[$fieldName]);
-		$this->__model->validate[$fieldName] = $this->_arrayMerge($options['validations'], $this->__model->validate[$fieldName]);
+		$model->validate[$fieldName] = $this->_arrayMerge($this->defaultValidations, $model->validate[$fieldName]);
+		$model->validate[$fieldName] = $this->_arrayMerge($options['validations'], $model->validate[$fieldName]);
 	}
 
 /**
@@ -1063,11 +1062,11 @@ function _copyFileFromTemp($tmpName, $saveAs) {
  * @return null
  * @author Vinicius Mendes
  */
-	function _setFileToRemove($fieldName) {
-		$filename = $this->__model->field($fieldName);
-		if (!empty($filename) && $filename != $this->__fields[$fieldName]['default']) {
+	function _setFileToRemove(&$model, $fieldName) {
+		$filename = $model->field($fieldName);
+		if (!empty($filename) && $filename != $this->__fields[$model->alias][$fieldName]['default']) {
 			$this->__filesToRemove[] = array(
-				'dir' => $this->__fields[$fieldName]['dir'],
+				'dir' => $this->__fields[$model->alias][$fieldName]['dir'],
 				'name' => $filename
 			);
 		}
@@ -1093,7 +1092,7 @@ function _copyFileFromTemp($tmpName, $saveAs) {
 			}
 			//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 			if (!empty($data[$modelName][$modelPrimaryKey])) {
-				$this->_setFileToRemove($fieldName);
+				$this->_setFileToRemove($model, $fieldName);
 			}
 		}
 	}
@@ -1150,4 +1149,3 @@ function _copyFileFromTemp($tmpName, $saveAs) {
 		$this->errors[] = $msg;
 	}
 }
-?>
