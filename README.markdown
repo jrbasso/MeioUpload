@@ -6,8 +6,8 @@ You can also use it in No-DB mode, which means that no data for the upload is st
 
 
 ## Installation
-- Clone from github : in your behaviors directory type `git clone git://github.com/josegonzalez/MeioUpload.git plugins/meio_upload`
-- Add as a git submodule : in your behaviors directory type `git submodule add git://github.com/josegonzalez/MeioUpload.git plugins/meio_upload`
+- Clone from github : in your behaviors directory type `git clone git://github.com/jrbasso/MeioUpload.git plugins/meio_upload`
+- Add as a git submodule : in your behaviors directory type `git submodule add git://github.com/jrbasso/MeioUpload.git plugins/meio_upload`
 - Download an archive from github and extract it in `plugins/meio_upload`
 
 * If you require thumbnails for image generation, download the latest copy of phpThumb and extract it into your vendors directory. Should end up like: /vendors/phpThumb/{files}. (http://phpthumb.sourceforge.net)
