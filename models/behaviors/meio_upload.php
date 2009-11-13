@@ -636,6 +636,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			}
 			$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
 			$sub = substr($data[$model->alias][$fieldName]['type'], $pos+1);
+			list(,$ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
 
 			// Put in a subfolder if the user wishes it
 			if (isset($options['folderAsField']) && !empty($options['folderAsField']) && is_string($options['folderAsField'])) {
@@ -715,8 +716,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				}
 				$this->_fixName($model, $fieldName);
 				// Also save the original image as uploadName if that option is not empty
-				if (!empty($options['uploadName'])) {
-				    list($dummyname,$ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
+				if (isset($options['uploadName']) && !empty($options['uploadName'])) {
     				$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']].'.'.$ext;
 			    } else {
 			        $saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
@@ -736,7 +736,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
 						if (isset($options['uploadName']) && !empty($options['uploadName'])) {
-							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $sub);
+							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $ext);
 						} else {
 							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
 						}
@@ -761,8 +761,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				$data[$model->alias][$options['fields']['dir']] = $options['dir'];
 				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
 				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
-				if (!empty($options['uploadName'])) {
-				    list($dummyname,$ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
+				if (isset($options['uploadName']) && !empty($options['uploadName'])) {
 				    $data[$model->alias][$fieldName] = $data[$model->alias][$options['uploadName']].'.'.$ext;
 			    } else {
 			        $data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
