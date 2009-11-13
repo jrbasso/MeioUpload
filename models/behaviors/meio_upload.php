@@ -267,6 +267,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  **/
 	function beforeSave(&$model) {
 		$result = $this->_uploadFile($model);
+		pr($result);
 		if (is_bool($result)) {
 			return $result;
 		} elseif (is_array($result)) {
@@ -761,7 +762,12 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				$data[$model->alias][$options['fields']['dir']] = $options['dir'];
 				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
 				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
-				$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
+				if (!empty($options['uploadName'])) {
+				    list($dummyname,$ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
+				    $data[$model->alias][$fieldName] = $data[$model->alias][$options['uploadName']].'.'.$ext;
+			    } else {
+			        $data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
+		        }				
 				$result = array('return' => true, 'data' => $data);
 				continue;
 			}
