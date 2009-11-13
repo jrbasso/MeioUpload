@@ -267,7 +267,6 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  **/
 	function beforeSave(&$model) {
 		$result = $this->_uploadFile($model);
-		pr($result);
 		if (is_bool($result)) {
 			return $result;
 		} elseif (is_array($result)) {
