@@ -206,7 +206,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 			// Merge given options with defaults
 			$options = $this->_arrayMerge($this->defaultOptions, $options);
-
+            
 			// Check if given field exists
 			if ($options['useTable'] && !$model->hasField($field)) {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->alias), E_USER_WARNING);
@@ -232,7 +232,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$tokens = array('{ModelName}', '{fieldName}', '{DS}', '/', '\\');
-			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);
+			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);			
 			$options['uploadName'] = rtrim($this->_replaceTokens($model, $options['uploadName'], $field, $tokens), DS);
 
 			// Replace tokens in the fields names
@@ -714,7 +714,13 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 					$this->_includeDefaultReplacement($options['default']);
 				}
 				$this->_fixName($model, $fieldName);
-				$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
+				// Also save the original image as uploadName if that option is not empty
+				if (!empty($options['uploadName'])) {
+				    list($dummyname,$ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
+    				$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']].'.'.$ext;
+			    } else {
+			        $saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
+		        }
 
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
@@ -829,6 +835,9 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 /**
  * Merges two arrays recursively
+ * primeminister / 2009-11-13 : Added fix for numeric arrays like allowedMime and allowedExt.
+ * These values will remain intact even if the passed options were shorter.
+ * Solved that with array_splice to keep intact the previous indexes (already merged)
  *
  * @param $arr Array
  * @param $ins Array
@@ -841,9 +850,12 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				foreach ($ins as $k => $v) {
 					if (isset($arr[$k]) && is_array($v) && is_array($arr[$k])) {
 						$arr[$k] = $this->_arrayMerge($arr[$k], $v);
+					} elseif (is_numeric($k)) {
+					    array_splice($arr, $k, count($arr));
+					    $arr[$k] = $v;
 					} else {
-						$arr[$k] = $v;
-					}
+					    $arr[$k] = $v;
+				    }
 				}
 			}
 		} elseif (!is_array($arr) && (strlen($arr) == 0 || $arr == 0)) {
