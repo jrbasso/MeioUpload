@@ -546,7 +546,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return true;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			if (!empty($field['name']) && $options['length']['minWidth'] > 0 && imagesx($field['tmp_name']) < $options['length']['minWidth']) {
+			list($imgWidth) = getimagesize($field['tmp_name']);
+			if (!empty($field['name']) && $options['length']['minWidth'] > 0 && $imgWidth < $options['length']['minWidth']) {
 				return false;
 			}
 		}
@@ -567,7 +568,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return true;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			if (!empty($field['name']) && $options['length']['maxWidth'] > 0 && imagesx($field['tmp_name']) > $options['length']['maxWidth']) {
+			list($imgWidth) = getimagesize($field['tmp_name']);
+			if (!empty($field['name']) && $options['length']['maxWidth'] > 0 && $imgWidth > $options['length']['maxWidth']) {
 				return false;
 			}
 		}
@@ -588,7 +590,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return true;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			if (!empty($field['name']) && $options['length']['minHeight'] > 0 && imagesy($field['tmp_name']) < $options['length']['minHeight']) {
+			list(, $imgHeight) = getimagesize($field['tmp_name']);
+			if (!empty($field['name']) && $options['length']['minHeight'] > 0 && $imgHeight < $options['length']['minHeight']) {
 				return false;
 			}
 		}
@@ -609,7 +612,8 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				return true;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			if (!empty($field['name']) && $options['length']['maxHeight'] > 0 && imagesy($field['tmp_name']) > $options['length']['maxHeight']) {
+			list(, $imgHeight) = getimagesize($field['tmp_name']);
+			if (!empty($field['name']) && $options['length']['maxHeight'] > 0 && $imgHeight > $options['length']['maxHeight']) {
 				return false;
 			}
 		}
