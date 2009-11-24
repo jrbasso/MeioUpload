@@ -665,8 +665,6 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				// If the file is an image, try to make the thumbnails
 				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					foreach ($options['thumbsizes'] as $key => $value) {
-						// Create the directory if it doesn't exist
-						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
 						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $sub);
 						$params = array(
@@ -738,8 +736,6 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				// If the file is an image, try to make the thumbnails
 				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					foreach ($options['thumbsizes'] as $key => $value) {
-						// Create the directory if it doesn't exist
-						$this->_createThumbnailFolders($options['dir'], $key);
 						// Generate the name for the thumbnail
 						if (isset($options['uploadName']) && !empty($options['uploadName'])) {
 							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $ext);
@@ -969,17 +965,18 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @author Jose Diaz-Gonzalez
  **/
 	function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
-		$result = '';
-		if($key == 'normal'){
-			$result = $saveAs;
+		if ($key == 'normal') {
+			// Create the directory if it doesn't exist
+			$this->_createThumbnailFolders($saveAs, $key);
+			return $saveAs;
 		// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
-		} else {
-			$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
-			if (isset($sub)) {
-				$result .= '.' . $sub;
-			}
 		}
-		return $result;
+		$this->_createThumbnailFolders($dir, $key);
+		$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
+		if (isset($sub)) {
+			return $result . '.' . $sub;
+		}
+		return '';
 	}
 
 /**
