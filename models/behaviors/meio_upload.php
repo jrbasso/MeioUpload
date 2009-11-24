@@ -1044,14 +1044,14 @@ function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
  **/
 	function _createThumbnailFolders($dir, $key) {
 		$folder = new Folder();
-		if (!$folder->cd(APP . "webroot" . DS . $dir)) {
-			$folder->mkdir(APP . "webroot" . DS . $dir);
+		if (!$folder->cd(WWW_ROOT . $dir)) {
+			$folder->mkdir(WWW_ROOT . $dir);
 		}
-		if (!$folder->cd(APP . "webroot" . DS . $dir. DS . 'thumb')) {
-			$folder->mkdir(APP . "webroot" . DS . $dir . DS . 'thumb');
+		if (!$folder->cd(WWW_ROOT . $dir. DS . 'thumb')) {
+			$folder->mkdir(WWW_ROOT . $dir . DS . 'thumb');
 		}
-		if (!$folder->cd(APP . "webroot" . DS . $dir . DS .'thumb' . DS . $key)) {
-			$folder->mkdir(APP . "webroot" . DS . $dir . DS . 'thumb' . DS . $key);
+		if (!$folder->cd(WWW_ROOT . $dir . DS .'thumb' . DS . $key)) {
+			$folder->mkdir(WWW_ROOT . $dir . DS . 'thumb' . DS . $key);
 		}
 	}
 
