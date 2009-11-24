@@ -16,6 +16,7 @@
  */
 App::import('Core', 'File');
 App::import('Core', 'Folder');
+
 class MeioUploadBehavior extends ModelBehavior {
 /**
  * The default options for the behavior
@@ -967,19 +968,19 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return string
  * @author Jose Diaz-Gonzalez
  **/
-function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
-	$result = '';
-	if($key == 'normal'){
-		$result = $saveAs;
-	// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
-	} else {
-		$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
-		if (isset($sub)) {
-			$result .= '.' . $sub;
+	function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
+		$result = '';
+		if($key == 'normal'){
+			$result = $saveAs;
+		// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
+		} else {
+			$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
+			if (isset($sub)) {
+				$result .= '.' . $sub;
+			}
 		}
+		return $result;
 	}
-	return $result;
-}
 
 /**
  * Convert a size value to bytes. For example: 2 MB to 2097152.
