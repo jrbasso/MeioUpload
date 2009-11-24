@@ -645,6 +645,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			// Put in a subfolder if the user wishes it
 			if (isset($options['folderAsField']) && !empty($options['folderAsField']) && is_string($options['folderAsField'])) {
 				$options['dir'] = $options['dir'] . DS . $data[$model->alias][$options['folderAsField']];
+				$this->__fields[$model->alias][$fieldName]['dir'] = $options['dir'];
 			}
 
 			// Check whether or not the behavior is in useTable mode
