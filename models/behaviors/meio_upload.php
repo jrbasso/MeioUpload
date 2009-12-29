@@ -664,25 +664,9 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 				// If the file is an image, try to make the thumbnails
 				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
-					foreach ($options['thumbsizes'] as $key => $value) {
-						// Generate the name for the thumbnail
-						$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $sub);
-						$params = array(
-							'thumbWidth' => $value['width'],
-							'thumbHeight' => $value['height']
-						);
-						if (isset($value['maxDimension'])) {
-							$params['maxDimension'] = $value['maxDimension'];
-						}
-						if (isset($value['thumbnailQuality'])) {
-							$params['thumbnailQuality'] = $value['thumbnailQuality'];
-						}
-						if (isset($value['zoomCrop'])) {
-							$params['zoomCrop'] = $value['zoomCrop'];
-						}
-						$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
-					}
+					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
 				}
+
 				$data = $this->_unsetDataFields($model->alias, $fieldName, $model->data, $options);
 				$result = array('return' => true, 'data' => $data);
 				continue;
@@ -735,28 +719,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 				// If the file is an image, try to make the thumbnails
 				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
-					foreach ($options['thumbsizes'] as $key => $value) {
-						// Generate the name for the thumbnail
-						if (isset($options['uploadName']) && !empty($options['uploadName'])) {
-							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $ext);
-						} else {
-							$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
-						}
-						$params = array(
-							'thumbWidth' => $value['width'],
-							'thumbHeight' => $value['height']
-						);
-						if (isset($value['maxDimension'])) {
-							$params['maxDimension'] = $value['maxDimension'];
-						}
-						if (isset($value['thumbnailQuality'])) {
-							$params['thumbnailQuality'] = $value['thumbnailQuality'];
-						}
-						if (isset($value['zoomCrop'])) {
-							$params['zoomCrop'] = $value['zoomCrop'];
-						}
-						$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
-					}
+					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
 				}
 
 				// Update model data
@@ -776,6 +739,37 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 			return $result;
 		} else {
 			return true;
+		}
+	}
+
+/**
+ * Create all the thumbnails
+ *
+ * @return void
+ * @author Jose Diaz-Gonzalez
+ **/
+	function _createThumbnails(&$model, $data, $fieldName, $saveAs, $ext, $options) {
+		foreach ($options['thumbsizes'] as $key => $value) {
+			// Generate the name for the thumbnail
+			if (isset($options['uploadName']) && !empty($options['uploadName'])) {
+				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $ext);
+			} else {
+				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
+			}
+			$params = array(
+				'thumbWidth' => $value['width'],
+				'thumbHeight' => $value['height']
+			);
+			if (isset($value['maxDimension'])) {
+				$params['maxDimension'] = $value['maxDimension'];
+			}
+			if (isset($value['thumbnailQuality'])) {
+				$params['thumbnailQuality'] = $value['thumbnailQuality'];
+			}
+			if (isset($value['zoomCrop'])) {
+				$params['zoomCrop'] = $value['zoomCrop'];
+			}
+			$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
 		}
 	}
 
