@@ -12,7 +12,7 @@ You can also use it in No-DB mode, which means that no data for the upload is st
 
 * If you require thumbnails for image generation, download the latest copy of phpThumb and extract it into your vendors directory. Should end up like: /vendors/phpThumb/{files}. (http://phpthumb.sourceforge.net)
 
-# Usage
+## Usage
 In a model that needs uploading, replace the class declaration with something similar to the following:
 
 	<?php
@@ -53,3 +53,6 @@ You'll want to include any other fields in your Model as well :)
 Make sure your directory (app/webroot/uploads/image/ in this case, image changes to the name of your model) is at least CHMOD 775, also check your php.ini MAX_FILE_SIZE is enough to support the filesizes you are uploading (default in the behavior is 2MB, can be configured)
 
 The behavior code will save the uploaded file's name in the 'filename' field in database, it will not overwrite existing files, instead it will create a new filename based on the original plus a counter. For thumbnails, when the file is uploaded, it will automatically create 3 thumbnail sizes (this can be configured) and prepend the name to the thumbfiles as directories(i.e. app/webroot/uploads/image/image_001.jpg will produced app/webroot/uploads/thumb/small/image/image_001.jpg, app/webroot/uploads/thumb/medium/image/image_001.jpg, app/webroot/uploads/thumb/large/image/image_001.jpg)
+
+### Deleting an uploaded file while keeping the record
+Flag the file for deletion by setting `data[Model][filename][remove]` to something non-empty, e.g. `TRUE`. The uploaded file including possible thumbnails will then be deleted together with adherent database fields upon save. Note that the record will be preserved, only the file meta-data columns will be reset.

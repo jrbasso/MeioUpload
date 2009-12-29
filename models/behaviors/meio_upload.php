@@ -32,11 +32,8 @@ class MeioUploadBehavior extends ModelBehavior {
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'default' => false, // Not sure what this does
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
-		'thumbnails' => true,
 		'thumbsizes' => array(
-			'small'  => array('width' => 100, 'height' => 100, 'thumbnailQuality' => 75),
-			'medium' => array('width' => 220, 'height' => 220, 'thumbnailQuality' => 75),
-			'large'  => array('width' => 800, 'height' => 600, 'thumbnailQuality' => 75)
+			// Place any custom thumbsize in model config instead,
 		),
 		'thumbnailQuality' => 75, // Global Thumbnail Quality
 		'maxDimension' => null, // Can be null, h, or w
@@ -236,6 +233,9 @@ class MeioUploadBehavior extends ModelBehavior {
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);
 			$options['uploadName'] = rtrim($this->_replaceTokens($model, $options['uploadName'], $field, $tokens), DS);
 
+			// Create the folders for the uploads
+			$this->_createFolders($options['dir'], array_keys($options['thumbsizes']));
+
 			// Replace tokens in the fields names
 			if ($options['useTable']) {
 				foreach ($options['fields'] as $fieldToken => $fieldName) {
@@ -299,7 +299,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function afterSave(&$model) {
 		foreach ($this->__filesToRemove as $file) {
 			if ($file['name']) {
-				$this->_deleteFiles($file['name'], $file['dir']);
+				$this->_deleteFiles($model, $file['field'], $file['name'], $file['dir']);
 			}
 		}
 		// Reset the filesToRemove array
@@ -348,7 +348,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			foreach ($this->__fields[$model->alias] as $field => $options) {
 				$file = $model->data[$model->alias][$field];
 				if ($file && $file != $options['default']) {
-					$this->_deleteFiles($file, $options['dir']);
+					$this->_deleteFiles($model, $field, $file, $options['dir']);
 				}
 			}
 		}
@@ -634,6 +634,15 @@ class MeioUploadBehavior extends ModelBehavior {
 			$data =& $model->data;
 		}
 		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
+			// Take care of removal flagged field
+			// However, this seems to be kind of code duplicating, see line ~711
+			if (!empty($data[$model->alias][$fieldName]['remove'])) {
+				$this->_markForDeletion($model->alias, $model->primaryKey, $fieldName, $data, $options['default']);
+				$data = $this->_unsetDataFields($model->alias, $fieldName, $data, $options);
+				$result = array('return' => true, 'data' => $data);
+				continue;
+			}
+			// If no file was selected we do not need to proceed
 			if (empty($data[$model->alias][$fieldName]['name'])) {
 				unset($data[$model->alias][$fieldName]);
 				$result = array('return' => true, 'data' => $data);
@@ -663,7 +672,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 
 				// If the file is an image, try to make the thumbnails
-				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
+				if ((count($options['thumbsizes']) > 0) && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
 				}
 
@@ -718,7 +727,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 
 				// If the file is an image, try to make the thumbnails
-				if ($options['thumbnails'] && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
+				if ((count($options['thumbsizes']) > 0) && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
 				}
 
@@ -960,12 +969,9 @@ class MeioUploadBehavior extends ModelBehavior {
  **/
 	function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
 		if ($key == 'normal') {
-			// Create the directory if it doesn't exist
-			$this->_createThumbnailFolders($saveAs, $key);
 			return $saveAs;
-		// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
 		}
-		$this->_createThumbnailFolders($dir, $key);
+		// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
 		$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
 		if (isset($sub)) {
 			return $result . '.' . $sub;
@@ -1027,6 +1033,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$model->validate[$fieldName] = $this->_arrayMerge($options['validations'], $model->validate[$fieldName]);
 	}
 
+
 /**
  * Creates thumbnail folders if they do not already exist
  *
@@ -1035,16 +1042,20 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @author Jose Diaz-Gonzalez
  **/
-	function _createThumbnailFolders($dir, $key) {
+	function _createFolders($dir, $thumbsizes) {
+		$dir (substr($dir, 0, 1) != "/") ? WWW_ROOT . $dir : $dir;
 		$folder = new Folder();
-		if (!$folder->cd(WWW_ROOT . $dir)) {
-			$folder->mkdir(WWW_ROOT . $dir);
+
+		if (!$folder->cd($dir)) {
+			$folder->mkdir($dir);
 		}
-		if (!$folder->cd(WWW_ROOT . $dir. DS . 'thumb')) {
-			$folder->mkdir(WWW_ROOT . $dir . DS . 'thumb');
+		if (!$folder->cd($dir. DS . 'thumb')) {
+			$folder->mkdir($dir . DS . 'thumb');
 		}
-		if (!$folder->cd(WWW_ROOT . $dir . DS .'thumb' . DS . $key)) {
-			$folder->mkdir(WWW_ROOT . $dir . DS . 'thumb' . DS . $key);
+		foreach ($thumbsizes as $thumbsize) {
+			if ($thumbsize != 'normal' && !$folder->cd($dir . DS .'thumb' . DS . $thumbsize)) {
+				$folder->mkdir($dir . DS . 'thumb' . DS . $thumbsize);
+			}
 		}
 	}
 
@@ -1079,6 +1090,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$filename = $model->field($fieldName);
 		if (!empty($filename) && $filename != $this->__fields[$model->alias][$fieldName]['default']) {
 			$this->__filesToRemove[] = array(
+				'field' => $fieldName,
 				'dir' => $this->__fields[$model->alias][$fieldName]['dir'],
 				'name' => $filename
 			);
@@ -1119,15 +1131,14 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean
  * @author Vinicius Mendes
  */
-	function _deleteFiles($filename, $dir) {
+	function _deleteFiles(&$model, $field, $filename, $dir) {
 		$saveAs = $dir . DS . $filename;
 		if (is_file($saveAs) && !unlink($saveAs)) {
 			return false;
 		}
-		$folder = &new Folder($dir);
-		$files = $folder->find('thumb\.[a-zA-Z0-9]+\.' . $filename);
-		foreach ($files as $f) {
-			unlink($dir . DS . $f);
+		foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
+			$file = &$new File($dir . DS . $size . DS . $fileName);
+			$file->delete();
 		}
 		return true;
 	}
