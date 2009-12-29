@@ -146,7 +146,7 @@ class MeioUploadBehavior extends ModelBehavior {
  *
  * @var array
  **/
-var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
+	var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
 
 /**
  * Constructor
@@ -233,7 +233,7 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$tokens = array('{ModelName}', '{fieldName}', '{DS}', '/', '\\');
-			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);			
+			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);
 			$options['uploadName'] = rtrim($this->_replaceTokens($model, $options['uploadName'], $field, $tokens), DS);
 
 			// Replace tokens in the fields names
@@ -705,10 +705,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				$this->_fixName($model, $fieldName);
 				// Also save the original image as uploadName if that option is not empty
 				if (isset($options['uploadName']) && !empty($options['uploadName'])) {
-    				$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']].'.'.$ext;
-			    } else {
-			        $saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
-		        }
+					$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']].'.'.$ext;
+				} else {
+					$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
+				}
 
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
@@ -727,10 +727,10 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
 				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
 				if (isset($options['uploadName']) && !empty($options['uploadName'])) {
-				    $data[$model->alias][$fieldName] = $data[$model->alias][$options['uploadName']].'.'.$ext;
-			    } else {
-			        $data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
-		        }				
+					$data[$model->alias][$fieldName] = $data[$model->alias][$options['uploadName']].'.'.$ext;
+				} else {
+					$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
+				}
 				$result = array('return' => true, 'data' => $data);
 				continue;
 			}
@@ -851,11 +851,11 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
 					if (isset($arr[$k]) && is_array($v) && is_array($arr[$k])) {
 						$arr[$k] = $this->_arrayMerge($arr[$k], $v);
 					} elseif (is_numeric($k)) {
-					    array_splice($arr, $k, count($arr));
-					    $arr[$k] = $v;
+						array_splice($arr, $k, count($arr));
+						$arr[$k] = $v;
 					} else {
-					    $arr[$k] = $v;
-				    }
+						$arr[$k] = $v;
+					}
 				}
 			}
 		} elseif (!is_array($arr) && (strlen($arr) == 0 || $arr == 0)) {
@@ -1056,17 +1056,17 @@ var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 
  * @return mixed true is successful, error message if not
  * @author Jose Diaz-Gonzalez
  **/
-function _copyFileFromTemp($tmpName, $saveAs) {
-	$results = true;
-	$file = new File($tmpName, $saveAs);
-	$temp = new File($saveAs, true);
-	if (!$temp->write($file->read())) {
-		$results = __d('meio_upload', 'Problems in the copy of the file.', true);
+	function _copyFileFromTemp($tmpName, $saveAs) {
+		$results = true;
+		$file = new File($tmpName, $saveAs);
+		$temp = new File($saveAs, true);
+		if (!$temp->write($file->read())) {
+			$results = __d('meio_upload', 'Problems in the copy of the file.', true);
+		}
+		$file->close();
+		$temp->close();
+		return $results;
 	}
-	$file->close();
-	$temp->close();
-	return $results;
-}
 
 /**
  * Set a file to be removed in afterSave() callback
@@ -1162,3 +1162,4 @@ function _copyFileFromTemp($tmpName, $saveAs) {
 		$this->errors[] = $msg;
 	}
 }
+?>
