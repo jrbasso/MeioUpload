@@ -1043,7 +1043,9 @@ class MeioUploadBehavior extends ModelBehavior {
  * @author Jose Diaz-Gonzalez
  **/
 	function _createFolders($dir, $thumbsizes) {
-		$dir (substr($dir, 0, 1) != "/") ? WWW_ROOT . $dir : $dir;
+		if ($dir[0] !== '/') {
+			$dir = WWW_ROOT . $dir;
+		}
 		$folder = new Folder();
 
 		if (!$folder->cd($dir)) {
