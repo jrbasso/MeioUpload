@@ -524,17 +524,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @author Juan Basso
  */
 	function uploadCheckMinWidth(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['MinWidth']['check']) {
-				return true;
-			}
-			$options = $this->__fields[$model->alias][$fieldName];
-			list($imgWidth) = getimagesize($field['tmp_name']);
-			if (!empty($field['name']) && $options['length']['minWidth'] > 0 && $imgWidth < $options['length']['minWidth']) {
-				return false;
-			}
-		}
-		return true;
+		return $this->_uploadCheckSize($model, $data, 'minWidth');
 	}
 
 /**
@@ -546,17 +536,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @author Juan Basso
  */
 	function uploadCheckMaxWidth(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['MaxWidth']['check']) {
-				return true;
-			}
-			$options = $this->__fields[$model->alias][$fieldName];
-			list($imgWidth) = getimagesize($field['tmp_name']);
-			if (!empty($field['name']) && $options['length']['maxWidth'] > 0 && $imgWidth > $options['length']['maxWidth']) {
-				return false;
-			}
-		}
-		return true;
+		return $this->_uploadCheckSize($model, $data, 'maxWidth');
 	}
 
 /**
@@ -568,17 +548,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @author Juan Basso
  */
 	function uploadCheckMinHeight(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['MinHeight']['check']) {
-				return true;
-			}
-			$options = $this->__fields[$model->alias][$fieldName];
-			list(, $imgHeight) = getimagesize($field['tmp_name']);
-			if (!empty($field['name']) && $options['length']['minHeight'] > 0 && $imgHeight < $options['length']['minHeight']) {
-				return false;
-			}
-		}
-		return true;
+		return $this->_uploadCheckSize($model, $data, 'minHeight');
 	}
 
 /**
@@ -590,14 +560,34 @@ class MeioUploadBehavior extends ModelBehavior {
  * @author Juan Basso
  */
 	function uploadCheckMaxHeight(&$model, $data) {
+		return $this->_uploadCheckSize($model, $data, 'maxHeight');
+	}
+
+/**
+ * Check generic to size of image
+ *
+ * @param $model Object
+ * @param $data Array
+ * @param $type String Values: maxWidth, minWidth, maxHeight, minHeight
+ * @return boolean
+ * @author Juan Basso
+ */
+	function _uploadCheckSize(&$model, &$data, $type) {
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['MaxHeight']['check']) {
+			if (!$model->validate[$fieldName][ucfirst($type)]['check']) {
 				return true;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			list(, $imgHeight) = getimagesize($field['tmp_name']);
-			if (!empty($field['name']) && $options['length']['maxHeight'] > 0 && $imgHeight > $options['length']['maxHeight']) {
-				return false;
+			list($imgWidth, $imgHeight) = getimagesize($field['tmp_name']);
+			$imgType = 'img' . substr($type, 3);
+			if (substr($type, 0, 3) === 'min') {
+				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType < $options['length'][$type]) {
+					return false;
+				}
+			} else {
+				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType > $options['length'][$type]) {
+					return false;
+				}
 			}
 		}
 		return true;
