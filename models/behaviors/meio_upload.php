@@ -8,14 +8,14 @@
  *  (http://digitalspaghetti.tooum.net/switchboard/blog/2497:Upload_Behavior_for_CakePHP_12)
  *
  * @author Jose Diaz-Gonzalez (support@savant.be)
+ * @author Juan Basso (jrbasso@gmail.com)
  * @package app
  * @subpackage app.models.behaviors
- * @filesource http://github.com/josegonzalez/MeioUpload/tree/master
+ * @filesource http://github.com/jrbasso/MeioUpload/tree/master
  * @version 2.0.1
- * @lastmodified 2009-08-16
+ * @lastmodified 2010-01-03
  */
-App::import('Core', 'File');
-App::import('Core', 'Folder');
+App::import('Core', array('File', 'Folder'));
 
 class MeioUploadBehavior extends ModelBehavior {
 /**
