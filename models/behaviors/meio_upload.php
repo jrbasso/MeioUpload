@@ -172,6 +172,18 @@ class MeioUploadBehavior extends ModelBehavior {
 			),
 			'InvalidExt' => array(
 				'message' => __d('meio_upload', 'Invalid file extension.', true)
+			),
+			'MinWidth' => array(
+				'message' => __d('meio_upload', 'Image width is smaller than minimum allowed.', true)
+			),
+			'MinHeight' => array(
+				'message' => __d('meio_upload', 'Image height is smaller than minimum allowed.', true)
+			),
+			'MaxWidth' => array(
+				'message' => __d('meio_upload', 'Image width is larger than maximum allowed.', true)
+			),
+			'MaxHeight' => array(
+				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.', true)
 			)
 		);
 		$this->defaultValidations = $this->_arrayMerge($this->defaultValidations, $messages);
