@@ -586,7 +586,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _uploadCheckSize(&$model, &$data, $type) {
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName][ucfirst($type)]['check']) {
+			if (!$model->validate[$fieldName][ucfirst($type)]['check'] || empty($field['tmp_name']) {
 				return true;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
