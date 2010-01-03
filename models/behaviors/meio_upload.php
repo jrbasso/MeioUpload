@@ -1137,7 +1137,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return false;
 		}
 		foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
-			$file = &$new File($dir . DS . $size . DS . $fileName);
+			$file = &new File($dir . DS . $size . DS . $fileName);
 			$file->delete();
 		}
 		return true;
