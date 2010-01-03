@@ -1055,6 +1055,9 @@ class MeioUploadBehavior extends ModelBehavior {
  **/
 	function _copyFileFromTemp($tmpName, $saveAs) {
 		$results = true;
+		if (!is_uploaded_file($tmpName)) {
+			return false;
+		}
 		$file = new File($tmpName, $saveAs);
 		$temp = new File($saveAs, true);
 		if (!$temp->write($file->read())) {
