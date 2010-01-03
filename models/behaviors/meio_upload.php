@@ -890,7 +890,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$newFilename = $filename;
 		if ($checkFile) {
 			while (file_exists($this->__fields[$model->alias][$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
-				$newFilename = $filename . $i++;
+				$newFilename = $filename . '-' . $i++;
 			}
 		}
 		$model->data[$model->alias][$fieldName]['name'] = $newFilename . '.' . $ext;
