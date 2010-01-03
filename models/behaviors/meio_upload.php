@@ -929,14 +929,14 @@ class MeioUploadBehavior extends ModelBehavior {
  *
  * @param $filename String
  * @return array
- * @author Vinicius Mendes
+ * @author Juan Basso
  */
 	function _splitFilenameAndExt($filename) {
-		$parts = explode('.', $filename);
-		$ext = $parts[count($parts) - 1];
-		unset($parts[count($parts) - 1]);
-		$filename = implode('.', $parts);
-		return array($filename, $ext);
+		extract(pathinfo($filename));
+		if (!isset($filename)) {
+			$filename = substr($basename, 0, -1 - count($extension)); // Remove extension and .
+		}
+		return array($filename, $extension);
 	}
 
 /**
