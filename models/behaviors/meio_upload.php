@@ -267,25 +267,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @author Jose Diaz-Gonzalez
  **/
 	function beforeSave(&$model) {
-		$result = $this->_uploadFile($model);
-		if (is_bool($result)) {
-			return $result;
-		} elseif (is_array($result)) {
-			if ($result['return'] === false) {
-				// Upload failed, lets see why
-				switch($result['reason']) {
-					case 'validation':
-						$model->validationErrors[$result['extra']['field']] = $result['extra']['error'];
-						break;
-				}
-				return false;
-			} else {
-				$model->data = $result['data'];
-				return true;
-			}
-		} else {
-			return false;
-		}
+		return $this->upload($model, null);
 	}
 
 /**
