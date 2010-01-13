@@ -12,7 +12,7 @@
  * @package app
  * @subpackage app.models.behaviors
  * @filesource http://github.com/jrbasso/MeioUpload/tree/master
- * @version 2.0.1
+ * @version 2.1
  * @lastmodified 2010-01-03
  */
 App::import('Core', array('File', 'Folder'));
