@@ -391,7 +391,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!is_dir($options['dir'])) {
 					if ($options['createDirectory']) {
 						$folder = &new Folder();
-						if (!$folder->mkdir($options['dir'])) {
+						if (!$folder->create($options['dir'])) {
 							trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', true), $options['dir']), E_USER_WARNING);
 							return false;
 						}
@@ -1033,14 +1033,14 @@ class MeioUploadBehavior extends ModelBehavior {
 		$folder = new Folder();
 
 		if (!$folder->cd($dir)) {
-			$folder->mkdir($dir);
+			$folder->create($dir);
 		}
 		if (!$folder->cd($dir. DS . 'thumb')) {
-			$folder->mkdir($dir . DS . 'thumb');
+			$folder->create($dir . DS . 'thumb');
 		}
 		foreach ($thumbsizes as $thumbsize) {
 			if ($thumbsize != 'normal' && !$folder->cd($dir . DS .'thumb' . DS . $thumbsize)) {
-				$folder->mkdir($dir . DS . 'thumb' . DS . $thumbsize);
+				$folder->create($dir . DS . 'thumb' . DS . $thumbsize);
 			}
 		}
 	}
