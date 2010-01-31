@@ -216,7 +216,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Merge given options with defaults
 			$options = $this->_arrayMerge($this->defaultOptions, $options);
-            
+
 			// Check if given field exists
 			if ($options['useTable'] && !$model->hasField($field)) {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->alias), E_USER_WARNING);
@@ -960,7 +960,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (isset($sub)) {
 			return $result . '.' . $sub;
 		}
-		return '';
+		return $result;
 	}
 
 /**
@@ -1141,7 +1141,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return false;
 		}
 		foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
-			$file = &new File($dir . DS . $size . DS . $fileName);
+			$file = &new File($dir . DS . $size . DS . $filename);
 			$file->delete();
 		}
 		return true;
