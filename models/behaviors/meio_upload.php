@@ -1072,17 +1072,32 @@ class MeioUploadBehavior extends ModelBehavior {
  * Set a file to be removed in afterSave() callback
  *
  * @param $fieldName String
- * @return null
+ * @return void
  * @author Vinicius Mendes
  */
 	function _setFileToRemove(&$model, $fieldName) {
 		$filename = $model->field($fieldName);
 		if (!empty($filename) && $filename != $this->__fields[$model->alias][$fieldName]['default']) {
-			$this->__filesToRemove[] = array(
-				'field' => $fieldName,
-				'dir' => $this->__fields[$model->alias][$fieldName]['dir'],
-				'name' => $filename
-			);
+			if (empty($this->__fields[$model->alias][$fieldName]['thumbsizes'])) {
+				$this->__filesToRemove[] = array(
+					'field' => $fieldName,
+					'dir' => $this->__fields[$model->alias][$fieldName]['dir'],
+					'name' => $filename
+				);
+				return;
+			}
+			foreach($this->__fields[$model->alias][$fieldName]['thumbsizes'] as $key => $sizes){
+				if ($key === 'normal') {
+					$subpath = '';
+				} else {
+					$subpath = DS . 'thumb' . DS . $key;
+				}
+				$this->__filesToRemove[] = array(
+					'field' => $fieldName,
+					'dir' => $this->__fields[$model->alias][$fieldName]['dir'] . $subpath,
+					'name' => $filename
+				);
+			}
 		}
 	}
 
