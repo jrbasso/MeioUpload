@@ -36,7 +36,6 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Place any custom thumbsize in model config instead,
 		),
 		'thumbnailQuality' => 75, // Global Thumbnail Quality
-		'maxDimension' => null, // Can be null, h, or w
 		'useImageMagick' => false,
 		'imageMagickPath' => '/usr/bin/convert', // Path to imageMagick on your server
 		'fields' => array(
@@ -749,10 +748,13 @@ class MeioUploadBehavior extends ModelBehavior {
 			} else {
 				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
 			}
-			$params = array(
-				'thumbWidth' => $value['width'],
-				'thumbHeight' => $value['height']
-			);
+			$params = array();
+			if (isset($value['width'])) {
+				$params['thumbWidth'] = $value['width'];
+			}
+			if (isset($value['height'])) {
+				$params['thumbHeight'] = $value['height'];
+			}
 			if (isset($value['maxDimension'])) {
 				$params['maxDimension'] = $value['maxDimension'];
 			}
