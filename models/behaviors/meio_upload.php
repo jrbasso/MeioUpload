@@ -620,7 +620,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Take care of removal flagged field
 			// However, this seems to be kind of code duplicating, see line ~711
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
-				$this->_markForDeletion($model->alias, $model->primaryKey, $fieldName, $data, $options['default']);
+				$this->_markForDeletion($model, $fieldName, $data, $options['default']);
 				$data = $this->_unsetDataFields($model->alias, $fieldName, $data, $options);
 				$result = array('return' => true, 'data' => $data);
 				continue;
@@ -1106,23 +1106,22 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Marks files for deletion in the beforeSave() callback
  *
- * @param $modelName string name of the Model
- * @param $modelPrimaryKey string field of the Model that is the primary key
+ * @param $model Reference to model
  * @param $fieldName string name of field that holds a reference to the file
  * @param $data array
  * @param $default
  * @return void
  * @author Jose Diaz-Gonzalez
  **/
-	function _markForDeletion($modelName, $modelPrimaryKey, $fieldName, $data, $default) {
-		if (!empty($data[$modelName][$fieldName]['remove'])) {
+	function _markForDeletion(&$model, $fieldName, $data, $default) {
+		if (!empty($data[$model->alias][$fieldName]['remove'])) {
 			if ($default) {
-				$data[$modelName][$fieldName] = $default;
+				$data[$model->alias][$fieldName] = $default;
 			} else {
-				$data[$modelName][$fieldName] = '';
+				$data[$model->alias][$fieldName] = '';
 			}
 			//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
-			if (!empty($data[$modelName][$modelPrimaryKey])) {
+			if (!empty($data[$model->alias][$model->primaryKey])) {
 				$this->_setFileToRemove($model, $fieldName);
 			}
 		}
