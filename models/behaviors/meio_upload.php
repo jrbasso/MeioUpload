@@ -27,6 +27,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'folderAsField' => null, // Can be the name of any field in $this->data
 		'uploadName' => null, // Can also be the tokens {ModelName} or {fieldName}
+		'fixFilename' => true,
 		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
@@ -885,6 +886,9 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _fixName(&$model, $fieldName, $checkFile = true) {
 		// updates the filename removing the keywords thumb and default name for the field.
+		if ($this->__fields[$model->alias][$fieldName]['fixFilename'] !== true) {
+			return;
+		}
 		list ($filename, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
 		$filename = str_replace($this->patterns, $this->replacements, $filename);
 		$filename = Inflector::slug($filename);
