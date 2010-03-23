@@ -291,7 +291,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function afterSave(&$model) {
 		foreach ($this->__filesToRemove as $file) {
-			if ($file['name']) {
+			if (!empty($file['name'])) {
 				$this->_deleteFiles($model, $file['field'], $file['name'], $file['dir']);
 			}
 		}
@@ -339,10 +339,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
 			foreach ($this->__fields[$model->alias] as $field => $options) {
-				$file = $model->data[$model->alias][$field];
-				if ($file && $file != $options['default']) {
-					$this->_deleteFiles($model, $field, $file, $options['dir']);
-				}
+				$this->_setFileToRemove($model, $field);
 			}
 		}
 		return true;
@@ -1142,7 +1139,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return false;
 		}
 		foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
-			$file = &new File($dir . DS . $size . DS . $filename);
+			$file =& new File($dir . DS . $size . DS . $filename);
 			$file->delete();
 		}
 		return true;
