@@ -769,7 +769,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Removes the bad characters from the $filename and replace reserved words. It updates the $model->data.
+ * Removes the bad characters from the $filename. It updates the $model->data.
  *
  * @param object $model
  * @param string $fieldName
