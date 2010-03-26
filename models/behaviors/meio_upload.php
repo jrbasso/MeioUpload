@@ -821,7 +821,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return (int)$size;
 		}
 		if (!preg_match('/^(\d+) ?(kb|mb|gb|tb)$/i', $size, $matches)) {
-			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size option format is invalid.', true), E_USER_ERROR);
+			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The maxSize option format is invalid.', true), E_USER_ERROR);
 			return 0;
 		}
 		switch (strtolower($matches[2])) {
