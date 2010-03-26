@@ -11,6 +11,17 @@ App::import('Core', array('File', 'Folder'));
 
 class MeioUploadBehavior extends ModelBehavior {
 /**
+ * Reserved words to replace
+ *
+ * @var array
+ * @access public
+ */
+	var $reservedWords = array(
+		'thumb' => 't_umb',
+		'default' => 'd_fault'
+	);
+
+/**
  * The default options for the behavior
  *
  * @var array
@@ -110,6 +121,14 @@ class MeioUploadBehavior extends ModelBehavior {
 	);
 
 /**
+ * Array of all possible images that can be converted to thumbnails
+ *
+ * @var array
+ * @access protected
+ */
+	var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
+
+/**
  * The array that saves the $options for the behavior
  *
  * @var array
@@ -118,31 +137,12 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $__fields = array();
 
 /**
- * Reserved words to replace
- *
- * @var array
- * @access public
- */
-	var $reservedWords = array(
-		'thumb' => 't_umb',
-		'default' => 'd_fault'
-	);
-
-/**
  * Array of files to be removed on the afterSave callback
  *
  * @var access
  * @access private
  */
 	var $__filesToRemove = array();
-
-/**
- * Array of all possible images that can be converted to thumbnails
- *
- * @var array
- * @access protected
- */
-	var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
 
 /**
  * Constructor
