@@ -11,17 +11,6 @@ App::import('Core', array('File', 'Folder'));
 
 class MeioUploadBehavior extends ModelBehavior {
 /**
- * Reserved words to replace
- *
- * @var array
- * @access public
- */
-	var $reservedWords = array(
-		'thumb' => 't_umb',
-		'default' => 'd_fault'
-	);
-
-/**
  * The default options for the behavior
  *
  * @var array
@@ -184,8 +173,8 @@ class MeioUploadBehavior extends ModelBehavior {
 				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.', true)
 			)
 		);
-		$this->_defaultValidations = Set::merge($this->defaultValidations, $messages);
-		$this->_defaultOptions['validations'] = $this->defaultValidations;
+		$this->_defaultValidations = Set::merge($this->_defaultValidations, $messages);
+		$this->_defaultOptions['validations'] = $this->_defaultValidations;
 	}
 
 /**
@@ -323,7 +312,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access public
  */
-	function afterDelete(&model) {
+	function afterDelete(&$model) {
 		$this->_removeInvalidFiles();
 	}
 
@@ -794,7 +783,6 @@ class MeioUploadBehavior extends ModelBehavior {
 			return;
 		}
 		list ($filename, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
-		$filename = str_replace(array_keys($this->reservedWords), array_values($this->reservedWords), $filename);
 		$filename = Inflector::slug($filename);
 		$i = 0;
 		$newFilename = $filename;
@@ -889,7 +877,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		} else {
 			$model->validate[$fieldName] = array();
 		}
-		$model->validate[$fieldName] = Set::merge($this->defaultValidations, $options['validations'], $model->validate[$fieldName]);
+		$model->validate[$fieldName] = Set::merge($this->_defaultValidations, $options['validations'], $model->validate[$fieldName]);
 	}
 
 
