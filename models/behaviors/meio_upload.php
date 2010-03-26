@@ -675,7 +675,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _createThumbnails(&$model, $data, $fieldName, $saveAs, $ext, $options) {
 		foreach ($options['thumbsizes'] as $key => $value) {
 			// Generate the name for the thumbnail
-			$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
+			$thumbSaveAs = $options['dir'] . DS . 'thumb' . DS . $key . DS . $data[$model->alias][$fieldName]['name'];
 
 			$checkItems = array('thumbWidth' => 'width', 'thumbHeight' => 'height', 'maxDimension', 'thumbnailQuality', 'zoomCrop');
 			$params = array();
@@ -807,25 +807,6 @@ class MeioUploadBehavior extends ModelBehavior {
 			$filename = substr($basename, 0, -1 - count($extension)); // Remove extension and .
 		}
 		return array($filename, $extension);
-	}
-
-/**
- * Generate the name for the thumbnail
- *
- * @param string $saveAs name for original file
- * @param string $dir directory for all uploads
- * @param string $key thumbnail size
- * @param string $fieldToSaveAs field in model to save as
- * @param string $sub substring to append to directory for naming
- * @return string
- * @access protected
- */
-	function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
-		$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
-		if (isset($sub)) {
-			return $result . '.' . $sub;
-		}
-		return $result;
 	}
 
 /**
