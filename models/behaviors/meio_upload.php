@@ -253,8 +253,12 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function beforeValidate(&$model) {
-		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
-			$this->_setupValidation($model, $fieldName, $options);
+		static $setup = false;
+		if ($setup === false) {
+			foreach ($this->__fields[$model->alias] as $fieldName => $options) {
+				$this->_setupValidation($model, $fieldName, $options);
+			}
+			$setup = true;
 		}
 		return true;
 	}
