@@ -20,8 +20,13 @@ class MeioUploadTestCase extends CakeTestCase {
 	function start() {
 		parent::start();
 		$this->TestModel = new Meiomodel();
-		//$this->TestModel->Behaviors->attach('MeioUpload.MeioUpload', array('filename'));
 		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUpload;
+	}
+
+	function end() {
+		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meiomodel');
+		$folder->delete();
+		parent::end();
 	}
 
 	function testReplaceTokens() {
@@ -116,6 +121,59 @@ class MeioUploadTestCase extends CakeTestCase {
 		$folder = new Folder();
 		$folder->cd(WWW_ROOT . 'test');
 		$folder->delete();
+	}
+}
+
+class MeioUploadWebTest extends CakeWebTestCase {
+
+	var $db;
+	var $fixture;
+
+	function MeioUploadWebTest($label = false) {
+		parent::CakeWebTestCase($label);
+
+		Router::setRequestInfo(array(
+			array(), array('base' => current(split("webroot", $_SERVER['PHP_SELF'])))
+		));
+
+		$this->db =& ConnectionManager::getDataSource('test');
+		require_once App::pluginPath('meio_upload') . DS . 'tests' . DS . 'fixtures' . DS . 'meio_fixture.php';
+		$this->fixture =& new MeioFixture($this->db);
+		$this->fixture->drop($this->db);
+	}
+
+	function setUp() {
+		parent::setUp();
+		$this->fixture->create($this->db);
+	}
+
+	function tearDown() {
+		$this->fixture->drop($this->db);
+		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meio');
+		$folder->delete();
+		parent::tearDown();
+	}
+
+	function testSimpleUpload() {
+		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
+		$this->assertTrue($this->get($url));
+		$this->setField('File:', TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg');
+		$this->click('Go');
+		$this->assertTrue(is_dir(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb'));
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+	}
+
+	function testConflitName() {
+		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
+		$this->assertTrue($this->get($url));
+		$this->setField('File:', TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg');
+		$this->click('Go');
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+
+		$this->assertTrue($this->get($url));
+		$this->setField('File:', TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg');
+		$this->click('Go');
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test-0.jpg'));
 	}
 }
 ?>
