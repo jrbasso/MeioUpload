@@ -128,6 +128,7 @@ class MeioUploadWebTest extends CakeWebTestCase {
 
 	var $db;
 	var $fixture;
+	var $Model;
 
 	function MeioUploadWebTest($label = false) {
 		parent::CakeWebTestCase($label);
@@ -145,6 +146,7 @@ class MeioUploadWebTest extends CakeWebTestCase {
 	function setUp() {
 		parent::setUp();
 		$this->fixture->create($this->db);
+		$this->Model =& ClassRegistry::init('MeioUpload.Meio');
 	}
 
 	function tearDown() {
@@ -156,24 +158,64 @@ class MeioUploadWebTest extends CakeWebTestCase {
 
 	function testSimpleUpload() {
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
+		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
+		if ($this->skipIf(!is_readable($file), 'File not readable.')) {
+			return;
+		}
 		$this->assertTrue($this->get($url));
-		$this->setField('File:', TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg');
+		$this->setField('File:', $file);
 		$this->click('Go');
 		$this->assertTrue(is_dir(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb'));
 		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+
+		$result = $this->Model->read(null, 1);
+		$expected = array(
+			'Meio' => array(
+				'id' => 1,
+				'filename' => 'test.jpg',
+				'dir' => 'uploads' . DS . 'meio' . DS . 'filename',
+				'filesize' => filesize($file),
+				'mimetype' => 'application/octet-stream'
+			)
+		);
+		$this->assertEqual($result, $expected);
 	}
 
 	function testConflitName() {
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
+		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
+		if ($this->skipIf(!is_readable($file), 'File not readable.')) {
+			return;
+		}
 		$this->assertTrue($this->get($url));
-		$this->setField('File:', TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg');
+		$this->setField('File:', $file);
 		$this->click('Go');
 		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+		$result = $this->Model->read(null, 1);
+		$expected = array(
+			'Meio' => array(
+				'id' => 1,
+				'filename' => 'test.jpg',
+				'dir' => 'uploads' . DS . 'meio' . DS . 'filename',
+				'filesize' => filesize($file),
+				'mimetype' => 'application/octet-stream'
+			)
+		);
 
 		$this->assertTrue($this->get($url));
 		$this->setField('File:', TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg');
 		$this->click('Go');
 		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test-0.jpg'));
+		$result = $this->Model->read(null, 2);
+		$expected = array(
+			'Meio' => array(
+				'id' => 2,
+				'filename' => 'test-0.jpg',
+				'dir' => 'uploads' . DS . 'meio' . DS . 'filename',
+				'filesize' => filesize($file),
+				'mimetype' => 'application/octet-stream'
+			)
+		);
 	}
 }
 ?>
