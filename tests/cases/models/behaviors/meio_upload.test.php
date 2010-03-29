@@ -285,7 +285,12 @@ class MeioUploadWebTest extends CakeWebTestCase {
 
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios', 'action' => 'removefile'), true);
 		$this->assertTrue($this->get($url));
-		$this->assertTrue(is_array($this->Model->read(null, 1)));
+		$data = $this->Model->read(null, 1);
+		$this->assertTrue(is_array($data));
+		$this->assertEqual($data['Meio']['filename'], '');
+		$this->assertEqual($data['Meio']['dir'], '');
+		$this->assertEqual($data['Meio']['filesize'], '');
+		$this->assertEqual($data['Meio']['mimetype'], '');
 		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
 		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg'));
 	}

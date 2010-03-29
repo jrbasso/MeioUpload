@@ -579,7 +579,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		$return = array();
 		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
-				$this->_markForDeletion($model, $fieldName);
+				if (!empty($data[$model->alias][$model->primaryKey])) {
+					$this->_setFileToRemove($model, $fieldName);
+				}
 				$this->_unsetDataFields($model, $fieldName);
 				$return[$fieldName] = array('return' => true);
 				continue;
@@ -615,15 +617,6 @@ class MeioUploadBehavior extends ModelBehavior {
 				$return[$fieldName] = array('return' => true);
 				continue;
 			} else {
-				// if the file is marked to be deleted, use the default or set the field to null
-				if (!empty($data[$model->alias][$fieldName]['remove'])) {
-					$data[$model->alias][$fieldName] = null;
-					//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
-					if (!empty($data[$model->alias][$model->primaryKey])) {
-						$this->_setFileToRemove($model, $fieldName);
-					}
-				}
-
 				// If no file has been upload, then unset the field to avoid overwriting existant file
 				if (!isset($data[$model->alias][$fieldName]) || !is_array($data[$model->alias][$fieldName]) || empty($data[$model->alias][$fieldName]['name'])) {
 					if (!empty($data[$model->alias][$model->primaryKey])) {
@@ -937,22 +930,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Marks files for deletion in the beforeSave() callback
- *
- * @param object $model Reference to model
- * @param string $fieldName name of field that holds a reference to the file
- * @return void
- * @access protected
- */
-	function _markForDeletion(&$model, $fieldName) {
-		$model->data[$model->alias][$fieldName] = null;
-		//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
-		if (!empty($model->data[$model->alias][$model->primaryKey])) {
-			$this->_setFileToRemove($model, $fieldName);
-		}
-	}
-
-/**
  * Unsets data from $data
  * Useful for no-db upload
  *
@@ -962,12 +939,12 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	function _unsetDataFields(&$model, $fieldName) {
-		unset($model->data[$model->alias][$fieldName]);
+		$model->data[$model->alias][$fieldName] = '';
 
 		$options = $this->__fields[$model->alias][$fieldName];
-		unset($model->data[$model->alias][$options['fields']['dir']]);
-		unset($model->data[$model->alias][$options['fields']['filesize']]);
-		unset($model->data[$model->alias][$options['fields']['mimetype']]);
+		$model->data[$model->alias][$options['fields']['dir']] = '';
+		$model->data[$model->alias][$options['fields']['filesize']] = '';
+		$model->data[$model->alias][$options['fields']['mimetype']] = '';
 	}
 
 /**
