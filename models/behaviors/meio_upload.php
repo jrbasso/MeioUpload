@@ -283,7 +283,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function afterSave(&$model) {
-		$this->_removeInvalidFiles();
+		$this->_removeListOfFiles();
 	}
 
 /**
@@ -313,7 +313,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function afterDelete(&$model) {
-		$this->_removeInvalidFiles();
+		$this->_removeListOfFiles();
 	}
 
 /**
@@ -976,9 +976,9 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access protected
  */
-	function _removeInvalidFiles() {
+	function _removeListOfFiles() {
 		foreach ($this->__filesToRemove as $info) {
-			$file =& new File($info['dir'] . DS . $info['filename']);
+			$file =& new File(WWW_ROOT . DS . $info['dir'] . DS . $info['name']);
 			$file->delete();
 		}
 	}
