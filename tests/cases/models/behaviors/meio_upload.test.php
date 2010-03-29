@@ -269,5 +269,24 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
 		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg'));
 	}
+
+	function testRemoveFlag() {
+		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
+		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
+		if ($this->skipIf(!is_readable($file), 'File not readable.')) {
+			return;
+		}
+		$this->assertTrue($this->get($url));
+		$this->setField('File:', $file);
+		$this->click('Go');
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode1' . DS . 'test.jpg'));
+
+		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios', 'action' => 'removefile'), true);
+		$this->assertTrue($this->get($url));
+		$this->assertTrue(is_array($this->Model->read(null, 1)));
+		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg'));
+	}
 }
 ?>

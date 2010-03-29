@@ -16,6 +16,18 @@ class MeiosController extends Controller {
 			$this->Meio->save($this->data);
 		}
 	}
+
+	function removefile() {
+		$this->autoRender = false;
+		$this->Meio->save(array(
+			'Meio' => array(
+				'id' => 1,
+				'filename' => array(
+					'remove' => true
+				)
+			)
+		));
+	}
 }
 
 ?>
