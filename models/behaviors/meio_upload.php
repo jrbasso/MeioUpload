@@ -677,14 +677,11 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Generate the name for the thumbnail
 			$thumbSaveAs = $options['dir'] . DS . 'thumb' . DS . $key . DS . $data[$model->alias][$fieldName]['name'];
 
-			$checkItems = array('thumbWidth' => 'width', 'thumbHeight' => 'height', 'maxDimension', 'thumbnailQuality', 'zoomCrop');
+			$checkItems = array('width', 'height', 'thumbnailQuality', 'zoomCrop');
 			$params = array();
-			foreach ($checkItems as $key => $property) {
+			foreach ($checkItems as $property) {
 				if (isset($value[$property])) {
-					if (!is_string($key)) {
-						$key = $property;
-					}
-					$params[$key] = $value[$property];
+					$params[$property] = $value[$property];
 				}
 			}
 			$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
@@ -705,9 +702,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _createThumbnail(&$model, $source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
 			array(
-				'thumbWidth' => 150,
-				'thumbHeight' => 225,
-				'maxDimension' => '',
 				'thumbnailQuality' => $this->__fields[$model->alias][$fieldName]['thumbnailQuality'],
 				'zoomCrop' => false
 			),
@@ -720,13 +714,18 @@ class MeioUploadBehavior extends ModelBehavior {
 		$phpThumb = new phpthumb;
 		$phpThumb->setSourceFilename($source);
 
-		if ($params['maxDimension'] == 'w') {
-			$phpThumb->w = $params['thumbWidth'];
-		} else if ($params['maxDimension'] == 'h') {
-			$phpThumb->h = $params['thumbHeight'];
+		$w = isset($params['width']);
+		$h = isset($params['height']);
+		if ($w && $h) {
+			$phpThumb->w = $params['width'];
+			$phpThumb->h = $params['height'];
+		} elseif ($w && !$h) {
+			$phpThumb->w = $params['width'];
+		} elseif ($h && !$w) {
+			$phpThumb->h = $params['height'];
 		} else {
-			$phpThumb->w = $params['thumbWidth'];
-			$phpThumb->h = $params['thumbHeight'];
+			trigger_error(__d('meio_upload', 'Width and Height of thumbs not specified.', true), E_USER_WARNING);
+			return;
 		}
 
 		if (isset($params['zoomCrop'])){
