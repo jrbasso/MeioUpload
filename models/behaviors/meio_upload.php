@@ -639,7 +639,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
-					$result = array('return' => false, 'reason' => 'validation', 'error' => $copyResults);
+					$return[$fieldName] = array('return' => false, 'reason' => 'validation', 'error' => $copyResults);
 					continue;
 				}
 
