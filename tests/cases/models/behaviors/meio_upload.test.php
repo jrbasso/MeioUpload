@@ -104,7 +104,8 @@ class MeioUploadTestCase extends CakeTestCase {
 		$result = $this->MeioUpload->_sizeToBytes('1 kb');
 		$this->assertEqual($result, 1024);
 
-		$result = @$this->MeioUpload->_sizeToBytes('1 xx');
+		$this->expectError();
+		$result = $this->MeioUpload->_sizeToBytes('1 xx');
 		$this->assertEqual($result, 0);
 	}
 
