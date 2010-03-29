@@ -175,7 +175,7 @@ class MeioUploadWebTest extends CakeWebTestCase {
 				'filename' => 'test.jpg',
 				'dir' => 'uploads' . DS . 'meio' . DS . 'filename',
 				'filesize' => filesize($file),
-				'mimetype' => 'application/octet-stream'
+				'mimetype' => 'image/jpeg'
 			)
 		);
 		$this->assertEqual($result, $expected);
@@ -198,7 +198,7 @@ class MeioUploadWebTest extends CakeWebTestCase {
 				'filename' => 'test.jpg',
 				'dir' => 'uploads' . DS . 'meio' . DS . 'filename',
 				'filesize' => filesize($file),
-				'mimetype' => 'application/octet-stream'
+				'mimetype' => 'image/jpeg'
 			)
 		);
 
@@ -213,9 +213,44 @@ class MeioUploadWebTest extends CakeWebTestCase {
 				'filename' => 'test-0.jpg',
 				'dir' => 'uploads' . DS . 'meio' . DS . 'filename',
 				'filesize' => filesize($file),
-				'mimetype' => 'application/octet-stream'
+				'mimetype' => 'image/jpeg'
 			)
 		);
+	}
+
+	function testThumb() {
+		if ($this->skipIf(!App::import('Vendor', 'phpthumb', array('file' => 'phpThumb' . DS . 'phpthumb.class.php')), 'PHPThumb cant be loaded.')) {
+			return;
+		}
+		if ($this->skipIf(!function_exists('getimagesize'), 'Function getimagesize not supported.')) {
+			return;
+		}
+		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
+		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
+		if ($this->skipIf(!is_readable($file), 'File not readable.')) {
+			return;
+		}
+		$this->assertTrue($this->get($url));
+		$this->setField('File:', $file);
+		$this->click('Go');
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'test.jpg'));
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode1' . DS . 'test.jpg'));
+		list($width, $height) = getimagesize(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode1' . DS . 'test.jpg');
+		$this->assertEqual(50, $width);
+
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode2' . DS . 'test.jpg'));
+		list($width, $height) = getimagesize(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode2' . DS . 'test.jpg');
+		$this->assertEqual(60, $height);
+
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode3' . DS . 'test.jpg'));
+		list($width, $height) = getimagesize(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode3' . DS . 'test.jpg');
+		$this->assertEqual(20, $width);
+		$this->assertEqual(20, $height);
+
+		$this->assertTrue(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg'));
+		list($width, $height) = getimagesize(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg');
+		$this->assertEqual(70, $width);
+		$this->assertEqual(20, $height);
 	}
 }
 ?>
