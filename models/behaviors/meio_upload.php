@@ -608,7 +608,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 				// If the file is an image, try to make the thumbnails
 				if ((count($options['thumbsizes']) > 0) && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
-					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
+					$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 				}
 
 				$this->_unsetDataFields($model, $fieldName);
@@ -645,7 +645,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 				// If the file is an image, try to make the thumbnails
 				if ((count($options['thumbsizes']) > 0) && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
-					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
+					$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 				}
 
 				// Update model data
@@ -664,7 +664,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * Create all the thumbnails
  *
  * @param object $model
- * @param array $data
  * @param string $fieldName
  * @param string $saveAs
  * @param string $ext
@@ -672,10 +671,10 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access protected
  */
-	function _createThumbnails(&$model, $data, $fieldName, $saveAs, $ext, $options) {
+	function _createThumbnails(&$model, $fieldName, $saveAs, $ext, $options) {
 		foreach ($options['thumbsizes'] as $key => $value) {
 			// Generate the name for the thumbnail
-			$thumbSaveAs = $options['dir'] . DS . 'thumb' . DS . $key . DS . $data[$model->alias][$fieldName]['name'];
+			$thumbSaveAs = $options['dir'] . DS . 'thumb' . DS . $key . DS . $model->data[$model->alias][$fieldName]['name'];
 
 			$checkItems = array('width', 'height', 'thumbnailQuality', 'zoomCrop');
 			$params = array();
