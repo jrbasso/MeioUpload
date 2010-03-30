@@ -17,7 +17,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	var $_defaultOptions = array(
-		'useTable' => true,
+		'useTable' => null,
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'fixFilename' => true,
 		'maxSize' => 2097152, // 2MB
@@ -202,6 +202,11 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Merge given options with defaults
 			$options = Set::merge($this->_defaultOptions, $options);
+
+			// Set useTable if not boolean
+			if ($options['useTable'] === null) {
+				$options['useTable'] = $model->useTable;
+			}
 
 			// Check if given field exists
 			if ($options['useTable'] && !$model->hasField($field)) {
@@ -450,7 +455,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			if (!empty($field['name']) && count($options['allowedMime']) > 0 && !in_array($field['type'], $options['allowedMime'])) {
+			if (!empty($field['name']) && !empty($options['allowedMime']) && !in_array($field['type'], $options['allowedMime'])) {
 				return false;
 			}
 		}
@@ -472,7 +477,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name'])) {
-				if (count($options['allowedExt']) > 0) {
+				if (!empty($options['allowedExt'])) {
 					$matches = 0;
 					foreach ($options['allowedExt'] as $extension) {
 						if (strtolower(substr($field['name'], -strlen($extension))) == strtolower($extension)) {
@@ -609,7 +614,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 
 				// If the file is an image, try to make the thumbnails
-				if ((count($options['thumbsizes']) > 0) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
+				if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 				}
 
@@ -637,7 +642,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 
 				// If the file is an image, try to make the thumbnails
-				if ((count($options['thumbsizes']) > 0) && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
+				if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 				}
 
