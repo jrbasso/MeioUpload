@@ -106,7 +106,7 @@ class MeioUploadTestCase extends CakeTestCase {
 
 		$this->expectError();
 		$result = $this->MeioUpload->_sizeToBytes('1 xx');
-		$this->assertEqual($result, 0);
+		$this->assertEqual($result, 2097152);
 	}
 
 	function testCreateFolders() {
