@@ -61,6 +61,7 @@ For each field, you can set the above parameters:
  * **maxSize** (Integer or String): Max filefize. You can set a integer (in bytes) or string like '1 MB'. Default is 2097152 (2MB);
  * **allowedMime** (Array): List of mimetypes allowed. Default is array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
  * **allowedExt** (Array): List of extensions allowed. Default is array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico');
+ * **thumbnailQuality** (Integer): Integer between 1 and 100 to define the quality of thumbs. Default is 75;
  * **zoomCrop** (String or False): False (boolean) or "C" (Center), "T" (Top), "B" (Bottom), "L" (Left), "R" (Right), "TL" (Top Left), "TR" (Top Right), "BL" (Bottom Left) or "BR" (Bottom Right). Default is false;
  * **thumbsizes** (Array): List of thumbs. The key of array is name of thumb and value must be a array with follow options:
    * **width**: Width of thumb. Optional if height is set;
