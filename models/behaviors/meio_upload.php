@@ -17,7 +17,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	var $_defaultOptions = array(
-		'useTable' => null,
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'fixFilename' => true,
 		'maxSize' => 2097152, // 2MB
@@ -194,19 +193,11 @@ class MeioUploadBehavior extends ModelBehavior {
 				$options = array();
 			}
 
-			// Inherit model's lack of table use if not set in options
-			// regardless of whether or not we set the table option
-			if (!$model->useTable) {
-				$options['useTable'] = false;
-			}
+			// Auto set useTable
+			$options['useTable'] = $model->useTable;
 
 			// Merge given options with defaults
 			$options = Set::merge($this->_defaultOptions, $options);
-
-			// Set useTable if not boolean
-			if ($options['useTable'] === null) {
-				$options['useTable'] = $model->useTable;
-			}
 
 			// Check if given field exists
 			if ($options['useTable'] && !$model->hasField($field)) {

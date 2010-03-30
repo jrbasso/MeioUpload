@@ -55,7 +55,6 @@ The behavior code will save the uploaded file's name in the 'filename' field in 
 
 For each field, you can set the above parameters:
 
- * **useTable** (Boolean): Set if you are using table. If you not set, behaviour will use model value;
  * **dir** (String): Set the directory that files and thums will be saved. You can use macros *{ModelName}*, *{fieldName}* and *{DS}*. Default is 'uploads{DS}{ModelName}{DS}{fieldName}';
  * **fixFilename** (Boolean): Slug the filename to save. Default is true;
  * **maxSize** (Integer or String): Max filesize of uploaded file. You can set a integer (in bytes) or string like '1 MB'. Default is 2097152 (2 MB);
