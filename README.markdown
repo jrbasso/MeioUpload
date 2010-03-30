@@ -58,20 +58,20 @@ For each field, you can set the above parameters:
  * **useTable** (Boolean): Set if you are using table. If you not set, behaviour will use model value;
  * **dir** (String): Set the directory that files and thums will be saved. You can use macros *{ModelName}*, *{fieldName}* and *{DS}*. Default is 'uploads{DS}{ModelName}{DS}{fieldName}';
  * **fixFilename** (Boolean): Slug the filename to save. Default is true;
- * **maxSize** (Integer or String): Max filefize. You can set a integer (in bytes) or string like '1 MB'. Default is 2097152 (2MB);
+ * **maxSize** (Integer or String): Max filesize of uploaded file. You can set a integer (in bytes) or string like '1 MB'. Default is 2097152 (2 MB);
  * **allowedMime** (Array): List of mimetypes allowed. Default is array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
  * **allowedExt** (Array): List of extensions allowed. Default is array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico');
  * **thumbnailQuality** (Integer): Integer between 1 and 100 to define the quality of thumbs. Default is 75;
  * **zoomCrop** (String or False): False (boolean) or "C" (Center), "T" (Top), "B" (Bottom), "L" (Left), "R" (Right), "TL" (Top Left), "TR" (Top Right), "BL" (Bottom Left) or "BR" (Bottom Right). Default is false;
  * **thumbsizes** (Array): List of thumbs. The key of array is name of thumb and value must be a array with follow options:
-   * **width**: Width of thumb. Optional if height is set;
-   * **height**: Height of thumb. Optional if width is set;
+   * **width**: Width in pixels of thumb. Optional if height is set;
+   * **height**: Height in pixels of thumb. Optional if width is set;
    * **thumbnailQuality** (Optional): Quality of thumb. Value can be between 1 and 100;
    * **zoomCrop** (Optional): Some of zoomCrop of parameters.
  * **useImageMagick** (Boolean): If will use Image Magick. Default is false;
  * **imageMagickPath** (String): Path of Image Magick executable. Only is need if useImageMagick is true. Default is '/usr/bin/convert';
  * **fields** (Array): Set name of fields to model. Can set 'dir', 'filesize' and 'mimetype'. Default is array('dir' => 'dir', 'filesize' => 'filesize', 'mimetype' => 'mimetype');
- * **length** (Array): Define minimum and maximum width and height of uploaded image.
+ * **length** (Array): Define minimum and maximum width and height in pixels of uploaded image. You can set the keys 'minWidth', 'maxWidth', 'minHeight' and 'maxHeight'. By default, all is 0 (not validate).
 
 ### Validations
 
