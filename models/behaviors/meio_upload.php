@@ -622,15 +622,11 @@ class MeioUploadBehavior extends ModelBehavior {
 				$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 			}
 
-			if ($options['useTable'] === false) {
-				$this->_cleanFields($model, $fieldName);
-			} else {
-				// Update model data
-				$data[$model->alias][$options['fields']['dir']] = $options['dir'];
-				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
-				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
-				$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
-			}
+			// Update model data
+			$data[$model->alias][$options['fields']['dir']] = $options['dir'];
+			$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
+			$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
+			$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
 
 			$return[$fieldName] = array('return' => true);
 			continue;
