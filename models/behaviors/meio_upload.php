@@ -172,8 +172,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.', true)
 			)
 		);
-		$this->_defaultValidations = Set::merge($this->_defaultValidations, $messages);
-		$this->_defaultOptions['validations'] = $this->_defaultValidations;
+		$this->_defaultOptions['validations'] = Set::merge($this->_defaultValidations, $messages);
 	}
 
 /**
@@ -383,7 +382,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				continue;
 			}
 			if (empty($field['remove'])) {
-				if (!is_array($field) || empty($field['name'])) {
+				if (empty($field['name'])) {
 					return false;
 				}
 			}
@@ -471,12 +470,13 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!empty($options['allowedExt'])) {
 					$matches = 0;
 					foreach ($options['allowedExt'] as $extension) {
-						if (strtolower(substr($field['name'], -strlen($extension))) == strtolower($extension)) {
-							$matches++;
+						if (strtolower(substr($field['name'], -strlen($extension))) === strtolower($extension)) {
+							$matches = 1;
+							break;
 						}
 					}
 
-					if ($matches == 0) {
+					if ($matches === 0) {
 						return false;
 					}
 				}
@@ -578,7 +578,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!empty($data[$model->alias][$model->primaryKey])) {
 					$this->_setFileToRemove($model, $fieldName);
 				}
-				$this->_unsetDataFields($model, $fieldName);
+				$this->_cleanFields($model, $fieldName);
 				$return[$fieldName] = array('return' => true);
 				continue;
 			}
@@ -588,30 +588,14 @@ class MeioUploadBehavior extends ModelBehavior {
 				$return[$fieldName] = array('return' => true);
 				continue;
 			}
-			$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
-			$sub = substr($data[$model->alias][$fieldName]['type'], $pos+1);
 			list(, $ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
 
 			// Check whether or not the behavior is in useTable mode
-			if ($options['useTable'] == false) {
+			if ($options['useTable'] === false) {
+				$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
+				$sub = substr($data[$model->alias][$fieldName]['type'], $pos + 1);
 				$this->_fixName($model, $fieldName, false);
 				$saveAs = $options['dir'] . DS . $sub;
-
-				// Attempt to move uploaded file
-				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
-				if ($copyResults !== true) {
-					$return[$fieldName] = array('return' => false, 'reason' => 'validation', 'error' => $copyResults);
-					continue;
-				}
-
-				// If the file is an image, try to make the thumbnails
-				if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
-					$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
-				}
-
-				$this->_unsetDataFields($model, $fieldName);
-				$return[$fieldName] = array('return' => true);
-				continue;
 			} else {
 				// If no file has been upload, then unset the field to avoid overwriting existant file
 				if (!isset($data[$model->alias][$fieldName]) || !is_array($data[$model->alias][$fieldName]) || empty($data[$model->alias][$fieldName]['name'])) {
@@ -624,27 +608,32 @@ class MeioUploadBehavior extends ModelBehavior {
 
 				$this->_fixName($model, $fieldName);
 				$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
+			}
 
-				// Attempt to move uploaded file
-				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
-				if ($copyResults !== true) {
-					$return[$fieldName] = array('return' => false, 'reason' => 'validation', 'error' => $copyResults);
-					continue;
-				}
+			// Attempt to move uploaded file
+			$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
+			if ($copyResults !== true) {
+				$return[$fieldName] = array('return' => false, 'reason' => 'validation', 'error' => $copyResults);
+				continue;
+			}
 
-				// If the file is an image, try to make the thumbnails
-				if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
-					$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
-				}
+			// If the file is an image, try to make the thumbnails
+			if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
+				$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
+			}
 
+			if ($options['useTable'] === false) {
+				$this->_cleanFields($model, $fieldName);
+			} else {
 				// Update model data
 				$data[$model->alias][$options['fields']['dir']] = $options['dir'];
 				$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
 				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
 				$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
-				$return[$fieldName] = array('return' => true);
-				continue;
 			}
+
+			$return[$fieldName] = array('return' => true);
+			continue;
 		}
 		return $return;
 	}
@@ -716,11 +705,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return;
 		}
 
-		if (isset($params['zoomCrop'])){
-			$phpThumb->setParameter('zc', $params['zoomCrop']);
-		} else {
-			$phpThumb->setParameter('zc', $this->__fields[$model->alias][$fieldName]['zoomCrop']);
-		}
+		$phpThumb->setParameter('zc', $params['zoomCrop']);
 		$phpThumb->q = $params['thumbnailQuality'];
 
 		list(, $phpThumb->config_output_format) = explode('.', $source, 2);
@@ -888,15 +873,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (!is_uploaded_file($tmpName)) {
 			return false;
 		}
-		$results = true;
-		$file = new File($tmpName, $saveAs);
-		$temp = new File($saveAs, true);
-		if (!$temp->write($file->read())) {
-			$results = __d('meio_upload', 'Problems in the copy of the file.', true);
+		if (!move_uploaded_file($tmpName, $saveAs)) {
+			return __d('meio_upload', 'Problems in the copy of the file.', true);
 		}
-		$file->close();
-		$temp->close();
-		return $results;
+		return true;
 	}
 
 /**
@@ -926,15 +906,14 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Unsets data from $data
- * Useful for no-db upload
+ * Clean fields from $data
  *
  * @param object $model name of the Model
  * @param string $fieldName name of field that holds a reference to the file
  * @return void
  * @access protected
  */
-	function _unsetDataFields(&$model, $fieldName) {
+	function _cleanFields(&$model, $fieldName) {
 		$model->data[$model->alias][$fieldName] = '';
 
 		$options = $this->__fields[$model->alias][$fieldName];
