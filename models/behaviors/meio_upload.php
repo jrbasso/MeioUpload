@@ -32,6 +32,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'default' => false, // Not sure what this does
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
+		'thumbnails' => true,
 		'thumbsizes' => array(
 			// Place any custom thumbsize in model config instead,
 		),
@@ -230,9 +231,11 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 
 			// Verifies if the thumbsizes names is alphanumeric
-			foreach ($options['thumbsizes'] as $name => $size) {
-				if (empty($name) || !ctype_alnum($name)) {
-					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
+			if ($options['thumbnails'] == true) {
+				foreach ($options['thumbsizes'] as $name => $size) {
+					if (empty($name) || !ctype_alnum($name)) {
+						trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
+					}
 				}
 			}
 
@@ -245,7 +248,12 @@ class MeioUploadBehavior extends ModelBehavior {
 			$options['uploadName'] = rtrim($this->_replaceTokens($model, $options['uploadName'], $field, $tokens), DS);
 
 			// Create the folders for the uploads
-			$this->_createFolders($options['dir'], array_keys($options['thumbsizes']));
+			// Create the folders for the uploads
+			if (!empty($options['thumbsizes'])) {
+				$this->_createFolders($options['dir'], array_keys($options['thumbsizes']));
+			} else {
+				$this->_createFolders($options['dir'], array());
+			}
 
 			// Replace tokens in the fields names
 			if ($options['useTable']) {
