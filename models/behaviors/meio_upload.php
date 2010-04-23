@@ -1090,17 +1090,19 @@ class MeioUploadBehavior extends ModelBehavior {
 				'dir' => $this->__fields[$model->alias][$fieldName]['dir'],
 				'name' => $filename
 			);
-			foreach($this->__fields[$model->alias][$fieldName]['thumbsizes'] as $key => $sizes){
-				if ($key === 'normal') {
-					$subpath = '';
-				} else {
-					$subpath = DS . 'thumb' . DS . $key;
+			if ($this->__fields[$model->alias][$fieldName]['thumbnails'] && !empty($this->__fields[$model->alias][$fieldName]['thumbsizes'])) {
+				foreach($this->__fields[$model->alias][$fieldName]['thumbsizes'] as $key => $sizes){
+					if ($key === 'normal') {
+						$subpath = '';
+					} else {
+						$subpath = DS . 'thumb' . DS . $key;
+					}
+					$this->__filesToRemove[] = array(
+						'field' => $fieldName,
+						'dir' => $this->__fields[$model->alias][$fieldName]['dir'] . $subpath,
+						'name' => $filename
+					);
 				}
-				$this->__filesToRemove[] = array(
-					'field' => $fieldName,
-					'dir' => $this->__fields[$model->alias][$fieldName]['dir'] . $subpath,
-					'name' => $filename
-				);
 			}
 		}
 	}
@@ -1143,9 +1145,11 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (is_file($saveAs) && !unlink($saveAs)) {
 			return false;
 		}
-		foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
-			$file =& new File($dir . DS . $size . DS . $filename);
-			$file->delete();
+		if ($this->__fields[$model->alias][$field]['thumbnails'] && !empty($this->__fields[$model->alias][$field]['thumbsizes'])) {
+			foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
+				$file =& new File($dir . DS . $size . DS . $filename);
+				$file->delete();
+			}
 		}
 		return true;
 	}
