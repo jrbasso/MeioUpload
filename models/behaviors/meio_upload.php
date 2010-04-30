@@ -931,5 +931,17 @@ class MeioUploadBehavior extends ModelBehavior {
 			$file->delete();
 		}
 	}
+
+/**
+ * Change the destination directory at runtime
+ *
+ * @return void
+ * @param string $field Name of the upload field, eg filename
+ * @param string $dir The new destination directory
+ * @access public
+ */
+	function changeDir(&$model, $field, $dir){
+		$this->__fields[$model->alias][$field]['dir'] = $dir;
+	}
 }
 ?>
