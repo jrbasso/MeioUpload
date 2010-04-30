@@ -216,9 +216,6 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field), DS);
 
-			// Create the folders for the uploads
-			$this->_createFolders($options['dir'], array_keys($options['thumbsizes']));
-
 			// Replace tokens in the fields names
 			if ($options['useTable']) {
 				foreach ($options['fields'] as $fieldToken => $fieldName) {
@@ -574,6 +571,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		$data =& $model->data;
 		$return = array();
 		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
+
+			//Create the appropriate directory and thumbnails directories.
+			$this->_createFolders($this->__fields[$model->alias][$fieldName]['dir'],array_keys($this->__fields[$model->alias][$fieldName]['thumbsizes']));
+
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
 				if (!empty($data[$model->alias][$model->primaryKey])) {
 					$this->_setFileToRemove($model, $fieldName);
