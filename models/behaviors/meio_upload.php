@@ -573,7 +573,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
 
 			//Create the appropriate directory and thumbnails directories.
-			$this->_createFolders($this->__fields[$model->alias][$fieldName]['dir'],array_keys($this->__fields[$model->alias][$fieldName]['thumbsizes']));
+			$this->_createFolders($options['dir'],array_keys($options['thumbsizes']));
 
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
 				if (!empty($data[$model->alias][$model->primaryKey])) {
