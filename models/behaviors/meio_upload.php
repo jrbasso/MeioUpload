@@ -224,7 +224,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Including the default name to the replacements
 			if ($options['default']) {
-				if (strpos($options['default'], '.') !== false) {
+				if (strpos($options['default'], '.') === false) {
 					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The default option must be the filename with extension.', true), E_USER_ERROR);
 				}
 				$this->_includeDefaultReplacement($options['default']);
