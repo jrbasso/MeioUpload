@@ -655,7 +655,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
-					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $fieldName, 'error' => $copyResults));
 					continue;
 				}
 
@@ -710,7 +710,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				// Attempt to move uploaded file
 				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 				if ($copyResults !== true) {
-					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $field, 'error' => $copyResults));
+					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $fieldName, 'error' => $copyResults));
 					continue;
 				}
 
