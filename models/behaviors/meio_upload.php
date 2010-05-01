@@ -297,7 +297,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @param $model Object
  * @author Vinicius Mendes
  */
-	function afterSave(&$model) {
+	function _deleteFiles() {
 		foreach ($this->__filesToRemove as $file) {
 			if (!empty($file['name'])) {
 				$this->_deleteFiles($model, $file['field'], $file['name'], $file['dir']);
@@ -307,6 +307,27 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__filesToRemove = array();
 	}
 
+/**
+ * After save
+ *
+ * @access public
+ * @param $model Object
+ * @return void
+ */
+	function afterSave(&$model) {
+		$this->_deleteFiles();
+	}
+
+/**
+ * After delete
+ *
+ * @access public
+ * @param $model Object
+ * @return void
+ */
+	function afterDelete(&$model) {
+		$this->_deleteFiles();
+	}
 /**
  * Performs a manual upload
  *
