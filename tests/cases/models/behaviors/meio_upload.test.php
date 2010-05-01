@@ -62,7 +62,7 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default_1_hello.jpg');
 
 		$file = WWW_ROOT . 'uploads' . DS . 'meiomodel' . DS . 'filename' . DS . 'default.jpg';
-		if ($this->skipIf(!touch($file), 'Fail to create file.')) {
+		if ($this->skipIf(!@touch($file), 'Fail to create file.')) {
 			return;
 		}
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default.jpg';
