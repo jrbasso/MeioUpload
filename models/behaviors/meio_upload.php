@@ -647,7 +647,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			// However, this seems to be kind of code duplicating, see line ~711
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
 				$this->_markForDeletion($model, $fieldName, $data, $options['default']);
-				$data = $this->_unsetDataFields($model->alias, $fieldName, $data, $options);
+				$data = $this->_nullifyDataFields($model->alias, $fieldName, $data, $options);
 				$result = array('return' => true, 'data' => $data);
 				continue;
 			}
@@ -1191,6 +1191,27 @@ class MeioUploadBehavior extends ModelBehavior {
 		unset($data[$modelName][$options['fields']['dir']]);
 		unset($data[$modelName][$options['fields']['filesize']]);
 		unset($data[$modelName][$options['fields']['mimetype']]);
+		return $data;
+	}
+
+/**
+ * Sets as NULL data from $data
+ * Useful when deleting a file.
+ *
+ * @param $model Reference to model
+ * @param $fieldName string name of field that holds a reference to the file
+ * @param $data array
+ * @param $options array
+ * @return array
+ * @author Jose Diaz-Gonzalez
+ **/
+	function _nullifyDataFields(&$model, $fieldName, $data, $options) {
+		$data[$model->alias][$fieldName] = null;
+		foreach ($options['fields'] as $field) {
+			if ($model->hasField($field)) {
+				$data[$model->alias][$field] = null;
+			}
+		}
 		return $data;
 	}
 
