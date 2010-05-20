@@ -297,7 +297,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @param $model Object
  * @author Vinicius Mendes
  */
-	function _deleteFilesList() {
+	function _deleteFilesList(&$model) {
 		foreach ($this->__filesToRemove as $file) {
 			if (!empty($file['name'])) {
 				$this->_deleteFiles($model, $file['field'], $file['name'], $file['dir']);
