@@ -315,7 +315,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  */
 	function afterSave(&$model) {
-		$this->_deleteFilesList();
+		$this->_deleteFilesList($model);
 	}
 
 /**
@@ -326,7 +326,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  */
 	function afterDelete(&$model) {
-		$this->_deleteFilesList();
+		$this->_deleteFilesList($model);
 	}
 /**
  * Performs a manual upload
