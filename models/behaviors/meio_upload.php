@@ -24,6 +24,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $defaultOptions = array(
 		'useTable' => true,
 		'createDirectory' => true,
+		'encryptedFolder' => false,
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'folderAsField' => null, // Can be the name of any field in $this->data
 		'uploadName' => null, // Can also be the tokens {ModelName} or {fieldName}
@@ -714,6 +715,12 @@ class MeioUploadBehavior extends ModelBehavior {
 				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 				if (!empty($data[$model->alias][$model->primaryKey])) {
 					$this->_setFileToRemove($model, $fieldName);
+				}
+				
+				// save in encrypted folder if specified
+				if ($options['encryptedFolder']) {
+					// setup UUID as a unique folder name
+					$options['dir'] .= DS . String::uuid();
 				}
 
 				// Fix the filename, removing bad characters and avoiding from overwriting existing ones
