@@ -648,7 +648,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			// However, this seems to be kind of code duplicating, see line ~711
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
 				$this->_markForDeletion($model, $fieldName, $data, $options['default']);
-				$data = $this->_nullifyDataFields($model->alias, $fieldName, $data, $options);
+				$data = $this->_nullifyDataFields($model, $fieldName, $data, $options);
 				$result = array('return' => true, 'data' => $data);
 				continue;
 			}
