@@ -1,0 +1,87 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# No version information was available in the source files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: MeioUpload\n"
+"POT-Creation-Date: 2009-05-21 22:34-0300\n"
+"PO-Revision-Date: 2010-06-10 12:09-0300\n"
+"Last-Translator: Marco Pergola <marco.pergola@gmail.com>\n"
+"Language-Team: Juan Basso <jrbasso@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+"X-Poedit-Language: Italian\n"
+"X-Poedit-Country: ITALY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: \models\behaviors\meio_upload.php:149
+msgid "This field has not been defined between the parameters of MeioUploadBehavior."
+msgstr "Il campo non è stato definito tra i parametri di MeioUploadBehavior."
+
+#: \models\behaviors\meio_upload.php:152
+msgid "The directory where the file would be placed there or is protected against writing."
+msgstr "La directory dove sarebbe stato posto il file non esiste o è protetta da scrittura."
+
+#: \models\behaviors\meio_upload.php:155
+msgid "The file can not be empty."
+msgstr "Il file non può essere vuoto."
+
+#: \models\behaviors\meio_upload.php:158
+msgid "There were problems in uploading the file."
+msgstr "Si sono verificati degli errori durante il caricamento del file."
+
+#: \models\behaviors\meio_upload.php:161
+msgid "The maximum file size is exceeded."
+msgstr "La dimensione del file è superiore al limite concesso."
+
+#: \models\behaviors\meio_upload.php:164
+msgid "Invalid file type."
+msgstr "Tipo del file non valido."
+
+#: \models\behaviors\meio_upload.php:167
+msgid "Invalid file extension."
+msgstr "Estensione del file non valida."
+
+#: \models\behaviors\meio_upload.php:191
+msgid "MeioUploadBehavior Error: The field \"%s\" doesn't exists in the model \"%s\"."
+msgstr "Errore in MeioUploadBehavior: Il campo \"%s\" non esiste nel modello \"%s\"."
+
+#: \models\behaviors\meio_upload.php:199
+msgid "MeioUploadBehavior Error: The default option must be the filename with extension."
+msgstr "Errore in MeioUploadBehavior: L\'opzione predefinita deve essere il nome del file con l\'estensione."
+
+#: \models\behaviors\meio_upload.php:206
+msgid "MeioUploadBehavior Error: The thumbsizes names must be alphanumeric."
+msgstr "Errore in MeioUploadBehavior: I nomi dell\'opzione thumbsizes devono contenere caratteri alfanumerici."
+
+#: \models\behaviors\meio_upload.php:283
+msgid "MeioUploadBehavior Error: The max_size option format is invalid."
+msgstr "Errore in MeioUploadBehavior: Il formato dell\'opzione max_size non è valido."
+
+#: \models\behaviors\meio_upload.php:299
+msgid "MeioUploadBehavior Error: The max_size unit is invalid."
+msgstr "Errore in MeioUploadBehavior: L\'unità di misura di max_size non è valida"
+
+#: \models\behaviors\meio_upload.php:341
+msgid "MeioUploadBehavior Error: The field \"%s\" wasn't declared as part of the MeioUploadBehavior in model \"%s\"."
+msgstr "Errore in MeioUploadBehavior: Il campo \"%s\" non è stato dichiarato come parte di MeioUploadBehavior nel modello \"%s\"."
+
+#: \models\behaviors\meio_upload.php:365
+msgid "MeioUploadBehavior Error: The directory %s does not exist and cannot be created."
+msgstr "Errore in MeioUploadBehavior: La directory %s non esiste o non può essere creata."
+
+#: \models\behaviors\meio_upload.php:369
+msgid "MeioUploadBehavior Error: The directory %s does not exist."
+msgstr "Errore in MeioUploadBehavior: La directory %s non esiste."
+
+#: \models\behaviors\meio_upload.php:376
+msgid "MeioUploadBehavior Error: The directory %s isn't writable."
+msgstr "Errore in MeioUploadBehavior: La directory %s non è scrivibile."
+
+#: \models\behaviors\meio_upload.php:627
+msgid "Problems in the copy of the file."
+msgstr "Si sono verificati degli errori durante la copia del file."
+
