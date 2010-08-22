@@ -9,17 +9,24 @@
  *
  * @author Jose Diaz-Gonzalez (support@savant.be)
  * @author Juan Basso (jrbasso@gmail.com)
- * @package app
- * @subpackage app.models.behaviors
- * @filesource http://github.com/jrbasso/MeioUpload/tree/master
- * @version 2.1
- * @lastmodified 2010-01-03
+ * @author Vinicius Mendes (vbmendes@gmail.com)
+ * @package meio_upload
+ * @subpackage meio_upload.models.behaviors
+ * @filesource http://github.com/jrbasso/MeioUpload
+ * @version 2.2
  */
 App::import('Core', array('File', 'Folder'));
 
+/**
+ * MeioUpload Behavior
+ *
+ */
 class MeioUploadBehavior extends ModelBehavior {
 /**
  * The default options for the behavior
+ *
+ * @var array
+ * @access public
  */
 	var $defaultOptions = array(
 		'useTable' => true,
@@ -54,6 +61,12 @@ class MeioUploadBehavior extends ModelBehavior {
 		'validations' => array()
 	);
 
+/**
+ * Default validations
+ *
+ * @var array
+ * @access public
+ */
 	var $defaultValidations = array(
 		'FieldName' => array(
 			'rule' => array('uploadCheckFieldName'),
@@ -115,11 +128,17 @@ class MeioUploadBehavior extends ModelBehavior {
 
 /**
  * The array that saves the $options for the behavior
+ *
+ * @var array
+ * @access private
  */
 	var $__fields = array();
 
 /**
  * Patterns of reserved words
+ *
+ * @var array
+ * @access public
  */
 	var $patterns = array(
 		'thumb',
@@ -128,6 +147,9 @@ class MeioUploadBehavior extends ModelBehavior {
 
 /**
  * Words to replace the patterns of reserved words
+ *
+ * @var array
+ * @access public
  */
 	var $replacements = array(
 		't_umb',
@@ -136,6 +158,9 @@ class MeioUploadBehavior extends ModelBehavior {
 
 /**
  * Array of files to be removed on the afterSave callback
+ *
+ * @var array
+ * @access private
  */
 	var $__filesToRemove = array();
 
@@ -143,13 +168,13 @@ class MeioUploadBehavior extends ModelBehavior {
  * Array of all possible images that can be converted to thumbnails
  *
  * @var array
- **/
+ * @access protected
+ */
 	var $_imageTypes = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
 
 /**
  * Constructor
  *
- * @author Juan Basso
  */
 	function __construct() {
 		$messages = array(
@@ -194,10 +219,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Setup the behavior. It stores a reference to the model, merges the default options with the options for each field, and setup the validation rules.
  *
- * @param $model Object
- * @param $settings Array[optional]
- * @return null
- * @author Vinicius Mendes
+ * @param object $model Reference to model
+ * @param array $settings Settings (optional)
+ * @return void
+ * @access public
  */
 	function setup(&$model, $settings = array()) {
 		$this->__fields[$model->alias] = array();
@@ -269,8 +294,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Sets the validation rules for each field.
  *
- * @param $model Object
- * @return true
+ * @param object $model Reference to model
+ * @return boolean Always true
+ * @access public
  */
 	function beforeValidate(&$model) {
 		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
@@ -282,10 +308,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Initializes the upload
  *
- * @param $model Object
+ * @param object $model Reference to model
  * @return boolean Whether the upload completed
- * @author Jose Diaz-Gonzalez
- **/
+ * @access public
+ */
 	function beforeSave(&$model) {
 		return $this->upload($model, null);
 	}
@@ -295,8 +321,9 @@ class MeioUploadBehavior extends ModelBehavior {
  * A file can be marked to be deleted if it is overwriten by
  * another or if the user mark it to be deleted.
  *
- * @param $model Object
- * @author Vinicius Mendes
+ * @param object $model Reference to model
+ * @return void
+ * @access protected
  */
 	function _deleteFilesList(&$model) {
 		foreach ($this->__filesToRemove as $file) {
@@ -309,22 +336,22 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * After save
+ * After save (callback)
  *
- * @access public
- * @param $model Object
+ * @param object $model Reference to model
  * @return void
+ * @access public
  */
 	function afterSave(&$model) {
 		$this->_deleteFilesList($model);
 	}
 
 /**
- * After delete
+ * After delete (callback)
  *
- * @access public
- * @param $model Object
+ * @param object $model Reference to model
  * @return void
+ * @access public
  */
 	function afterDelete(&$model) {
 		$this->_deleteFilesList($model);
@@ -332,11 +359,11 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Performs a manual upload
  *
- * @param $model Object
- * @param $data Array data to be saved
+ * @param object $model Reference to model
+ * @param array $data Array data to be saved
  * @return boolean Whether the upload completed
- * @author Jose Diaz-Gonzalez
- **/
+ * @access public
+ */
 	function upload(&$model, $data) {
 		$result = $this->_uploadFile($model, $data);
 		if (is_bool($result)) {
@@ -362,8 +389,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Deletes all files associated with the record beforing delete it.
  *
- * @param $model Object
- * @author Vinicius Mendes
+ * @param object $model Reference to model
+ * @return boolean Always true
+ * @access public
  */
 	function beforeDelete(&$model) {
 		$model->read(null, $model->id);
@@ -378,10 +406,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the field was declared in the MeioUpload Behavior setup
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckFieldName(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -401,10 +429,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the folder exists or can be created or writable.
  *
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @param $model Object
- * @param $data Array
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckDir(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -440,10 +468,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the filename is not empty.
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckEmpty(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -462,10 +490,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if ocurred erros in the upload.
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckUploadError(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -482,10 +510,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the file isn't bigger then the max file size option.
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckMaxSize(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -503,10 +531,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the file is of an allowed mime-type.
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckInvalidMime(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -524,10 +552,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the file has an allowed extension.
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Vinicius Mendes
+ * @access public
  */
 	function uploadCheckInvalidExt(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
@@ -556,10 +584,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the min width is allowed
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Juan Basso
+ * @access public
  */
 	function uploadCheckMinWidth(&$model, $data) {
 		return $this->_uploadCheckSize($model, $data, 'minWidth');
@@ -568,10 +596,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the max width is allowed
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Juan Basso
+ * @access public
  */
 	function uploadCheckMaxWidth(&$model, $data) {
 		return $this->_uploadCheckSize($model, $data, 'maxWidth');
@@ -580,10 +608,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the min height is allowed
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Juan Basso
+ * @access public
  */
 	function uploadCheckMinHeight(&$model, $data) {
 		return $this->_uploadCheckSize($model, $data, 'minHeight');
@@ -592,10 +620,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Checks if the max height is allowed
  *
- * @param $model Object
- * @param $data Array
+ * @param object $model Reference to model
+ * @param array $data
  * @return boolean
- * @author Juan Basso
+ * @access public
  */
 	function uploadCheckMaxHeight(&$model, $data) {
 		return $this->_uploadCheckSize($model, $data, 'maxHeight');
@@ -604,11 +632,11 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Check generic to size of image
  *
- * @param $model Object
- * @param $data Array
- * @param $type String Values: maxWidth, minWidth, maxHeight, minHeight
+ * @param object $model Reference to model
+ * @param array $data Reference to data
+ * @param string $type Type of check: minHeight, minWidth, maxHeight, maxWidth
  * @return boolean
- * @author Juan Basso
+ * @access protected
  */
 	function _uploadCheckSize(&$model, &$data, $type) {
 		foreach ($data as $fieldName => $field) {
@@ -634,10 +662,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Uploads the files
  *
- * @param $model Object
- * @param $data Array Optional Containing data to be saved
- * @return array
- * @author Vinicius Mendes
+ * @param object $model Reference to model
+ * @param array $data Optional Containing data to be saved
+ * @return mixed
+ * @access protected
  */
 	function _uploadFile(&$model, $data = null) {
 		if (!isset($data) || !is_array($data)) {
@@ -770,9 +798,14 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Create all the thumbnails
  *
+ * @param object $model Reference to model
+ * @param array $data
+ * @param string $fieldName
+ * @param string $ext
+ * @param array $options
  * @return void
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _createThumbnails(&$model, $data, $fieldName, $saveAs, $ext, $options) {
 		foreach ($options['thumbsizes'] as $key => $value) {
 			// Generate the name for the thumbnail
@@ -804,12 +837,13 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Function to create Thumbnail images
  *
- * @author Jose Diaz-Gonzalez
- * @param String source file name (without path)
- * @param String target file name (without path)
- * @param String path to source and destination (no trailing DS)
- * @param Array
+ * @param object $model Reference to model
+ * @param string $source File name (without path)
+ * @param string $target File name (without path)
+ * @param string $fieldName
+ * @param array $params
  * @return void
+ * @access protected
  */
 	function _createThumbnail(&$model, $source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
@@ -863,14 +897,14 @@ class MeioUploadBehavior extends ModelBehavior {
 
 /**
  * Merges two arrays recursively
- * primeminister / 2009-11-13 : Added fix for numeric arrays like allowedMime and allowedExt.
+ *
  * These values will remain intact even if the passed options were shorter.
  * Solved that with array_splice to keep intact the previous indexes (already merged)
  *
- * @param $arr Array
- * @param $ins Array
+ * @param array $arr
+ * @param array $ins
  * @return array
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _arrayMerge($arr, $ins) {
 		if (is_array($arr)) {
@@ -896,10 +930,12 @@ class MeioUploadBehavior extends ModelBehavior {
  * Replaces some tokens. {ModelName} to the underscore version of the model name
  * {fieldName} to the field name, {DS}. / or \ to DS constant value.
  *
- * @param $string String
- * @param $fieldName String
+ * @param object $model Reference to model
+ * @param string $string
+ * @param string $fieldName
+ * @param array $tokens
  * @return string
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _replaceTokens(&$model, $string, $fieldName, $tokens = array()) {
 		return str_replace(
@@ -912,9 +948,11 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Removes the bad characters from the $filename and replace reserved words. It updates the $model->data.
  *
- * @param $fieldName String
+ * @param object $model Reference to model
+ * @param string $fieldName
+ * @param boolean $checkFile
  * @return void
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _fixName(&$model, $fieldName, $checkFile = true) {
 		// updates the filename removing the keywords thumb and default name for the field.
@@ -934,9 +972,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Include a pattern of reserved word based on a filename, and it's replacement.
  *
- * @param $default String
+ * @param string $default
  * @return void
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _includeDefaultReplacement($default) {
 		$replacements = $this->replacements;
@@ -962,9 +1000,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Splits a filename in two parts: the name and the extension. Returns an array with it respectively.
  *
- * @param $filename String
+ * @param string $filename
  * @return array
- * @author Juan Basso
+ * @access protected
  */
 	function _splitFilenameAndExt($filename) {
 		extract(pathinfo($filename));
@@ -978,14 +1016,14 @@ class MeioUploadBehavior extends ModelBehavior {
  * Generate the name for the thumbnail
  * If a 'normal' thumbnail is set, then it will overwrite the original file
  *
- * @param $saveAs String name for original file
- * @param $dir String directory for all uploads
- * @param $key String thumbnail size
- * @param $fieldToSaveAs String field in model to save as
- * @param $sub String substring to append to directory for naming
+ * @param string $saveAs name for original file
+ * @param string $dir directory for all uploads
+ * @param string $key thumbnail size
+ * @param string $fieldToSaveAs field in model to save as
+ * @param string $sub substring to append to directory for naming
  * @return string
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
 		if ($key == 'normal') {
 			return $saveAs;
@@ -1001,9 +1039,9 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Convert a size value to bytes. For example: 2 MB to 2097152.
  *
- * @param $size String
- * @return int
- * @author Vinicius Mendes
+ * @param string $size
+ * @return integer
+ * @access protected
  */
 	function _sizeToBytes($size) {
 		if (is_numeric($size)) {
@@ -1031,10 +1069,11 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Sets the validation for each field, based on the options.
  *
- * @param $fieldName String
- * @param $options Array
+ * @param object $model Reference to model
+ * @param string $fieldName
+ * @param array $options
  * @return void
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _setupValidation(&$model, $fieldName, $options) {
 		$options = $this->__fields[$model->alias][$fieldName];
@@ -1056,11 +1095,11 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Creates thumbnail folders if they do not already exist
  *
- * @param $dir string Path to uploads
- * @param $key string Name for particular thumbnail type
+ * @param string $dir Path to uploads
+ * @param array $thumbsizes
  * @return void
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _createFolders($dir, $thumbsizes) {
 		if ($dir[0] !== '/') {
 			$dir = WWW_ROOT . $dir;
@@ -1083,11 +1122,11 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Copies file from temporary directory to final destination
  *
- * @param $tmpName string full path to temporary file
- * @param $saveAs string full path to move the file to
+ * @param string $tmpName full path to temporary file
+ * @param string $saveAs full path to move the file to
  * @return mixed true is successful, error message if not
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _copyFileFromTemp($tmpName, $saveAs) {
 		$results = true;
 		if (!is_uploaded_file($tmpName)) {
@@ -1106,9 +1145,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Set a file to be removed in afterSave() callback
  *
- * @param $fieldName String
+ * @param object $model Reference to model
+ * @param sting $fieldName
  * @return void
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _setFileToRemove(&$model, $fieldName) {
 		$filename = $model->field($fieldName);
@@ -1138,13 +1178,13 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Marks files for deletion in the beforeSave() callback
  *
- * @param $model Reference to model
- * @param $fieldName string name of field that holds a reference to the file
- * @param $data array
- * @param $default
+ * @param object $model Reference to model
+ * @param string $fieldName name of field that holds a reference to the file
+ * @param array $data
+ * @param strng $default
  * @return void
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _markForDeletion(&$model, $fieldName, $data, $default) {
 		if (!empty($data[$model->alias][$fieldName]['remove'])) {
 			if ($default) {
@@ -1163,10 +1203,12 @@ class MeioUploadBehavior extends ModelBehavior {
  * Delete the $filename inside the $dir and the thumbnails.
  * Returns true if the file is deleted and false otherwise.
  *
- * @param $filename Object
- * @param $dir Object
+ * @param object $model Reference to model
+ * @param string $field
+ * @param string $filename
+ * @param stirng $dir
  * @return boolean
- * @author Vinicius Mendes
+ * @access protected
  */
 	function _deleteFiles(&$model, $field, $filename, $dir) {
 		$saveAs = $dir . DS . $filename;
@@ -1187,13 +1229,13 @@ class MeioUploadBehavior extends ModelBehavior {
  * Unsets data from $data
  * Useful for no-db upload
  *
- * @param $modelName string name of the Model
- * @param $fieldName string name of field that holds a reference to the file
- * @param $data array
- * @param $options array
+ * @param string $modelName name of the Model
+ * @param string $fieldName name of field that holds a reference to the file
+ * @param array $data
+ * @param array $options
  * @return array
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _unsetDataFields($modelName, $fieldName, $data, $options) {
 		unset($data[$modelName][$fieldName]);
 		unset($data[$modelName][$options['fields']['dir']]);
@@ -1206,13 +1248,13 @@ class MeioUploadBehavior extends ModelBehavior {
  * Sets as NULL data from $data
  * Useful when deleting a file.
  *
- * @param $model Reference to model
- * @param $fieldName string name of field that holds a reference to the file
- * @param $data array
- * @param $options array
+ * @param object $model Reference to model
+ * @param string $fieldName name of field that holds a reference to the file
+ * @param array $data
+ * @param array $options
  * @return array
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _nullifyDataFields(&$model, $fieldName, $data, $options) {
 		$data[$model->alias][$fieldName] = null;
 		foreach ($options['fields'] as $field) {
@@ -1226,10 +1268,10 @@ class MeioUploadBehavior extends ModelBehavior {
 /**
  * Adds an error, legacy from the component
  *
- * @param $msg string error message
+ * @param string $msg error message
  * @return void
- * @author Jose Diaz-Gonzalez
- **/
+ * @access protected
+ */
 	function _addError($msg) {
 		$this->errors[] = $msg;
 	}
