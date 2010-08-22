@@ -1276,4 +1276,3 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->errors[] = $msg;
 	}
 }
-?>
