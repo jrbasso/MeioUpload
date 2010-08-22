@@ -1174,7 +1174,8 @@ class MeioUploadBehavior extends ModelBehavior {
 			return false;
 		}
 		if ($this->__fields[$model->alias][$field]['thumbnails'] && !empty($this->__fields[$model->alias][$field]['thumbsizes'])) {
-			foreach ($this->__fields[$model->alias][$field]['thumbsizes'] as $size => &$config) {
+			$sizes = array_keys($this->__fields[$model->alias][$field]['thumbsizes']);
+			foreach ($sizes as $size) {
 				$file =& new File($dir . DS . $size . DS . $filename);
 				$file->delete();
 			}
