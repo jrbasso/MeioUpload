@@ -543,6 +543,10 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && count($options['allowedMime']) > 0 && !in_array($field['type'], $options['allowedMime'])) {
+				$info = @getimagesize($field['tmp_name']);
+				if ($info !== false && in_array($info['mime'], $options['allowedMime'])) {
+					return true;
+				}
 				return false;
 			}
 		}
