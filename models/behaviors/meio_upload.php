@@ -414,10 +414,10 @@ class MeioUploadBehavior extends ModelBehavior {
 	function uploadCheckFieldName(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['FieldName']['check']) {
-				return true;
+				continue;
 			}
 			if (isset($this->__fields[$model->alias][$fieldName])) {
-				return true;
+				continue;
 			} else {
 				$this->log(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias));
 				return false;
@@ -437,7 +437,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function uploadCheckDir(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['Dir']['check']) {
-				return true;
+				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			if (empty($field['remove']) || empty($field['name'])) {
@@ -476,7 +476,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function uploadCheckEmpty(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['Empty']['check']) {
-				return true;
+				continue;
 			}
 			if (empty($field['remove'])) {
 				if (!is_array($field) || empty($field['name'])) {
@@ -498,7 +498,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function uploadCheckUploadError(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['UploadError']['check']) {
-				return true;
+				continue;
 			}
 			if (!empty($field['name']) && $field['error'] > 0) {
 				return false;
@@ -518,7 +518,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function uploadCheckMaxSize(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['MaxSize']['check']) {
-				return true;
+				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && $field['size'] > $options['maxSize']) {
@@ -542,13 +542,13 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['InvalidMime']['check']) {
-				return true;
+				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name']) && !in_array($field['type'], $options['allowedMime'])) {
 				$info = @getimagesize($field['tmp_name']);
 				if ($info !== false && in_array($info['mime'], $options['allowedMime'])) {
-					return true;
+					continue;
 				}
 				return false;
 			}
@@ -567,7 +567,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function uploadCheckInvalidExt(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['InvalidExt']['check']) {
-				return true;
+				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			if (!empty($field['name'])) {
@@ -648,7 +648,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _uploadCheckSize(&$model, &$data, $type) {
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName][ucfirst($type)]['check'] || empty($field['tmp_name'])) {
-				return true;
+				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
 			list($imgWidth, $imgHeight) = getimagesize($field['tmp_name']);
