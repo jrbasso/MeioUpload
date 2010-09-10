@@ -537,15 +537,12 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadCheckInvalidMime(&$model, $data) {
-		if (count($options['allowedMime']) === 0) {
-			return true;
-		}
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['InvalidMime']['check']) {
 				continue;
 			}
 			$options = $this->__fields[$model->alias][$fieldName];
-			if (!empty($field['name']) && !in_array($field['type'], $options['allowedMime'])) {
+			if (!empty($field['name']) && count($options['allowedMime']) > 0 && !in_array($field['type'], $options['allowedMime'])) {
 				$info = @getimagesize($field['tmp_name']);
 				if ($info !== false && in_array($info['mime'], $options['allowedMime'])) {
 					continue;
