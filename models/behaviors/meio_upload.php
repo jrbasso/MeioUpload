@@ -4,7 +4,7 @@
  *
  * This behavior is based on Vincius Mendes'  MeioUpload Behavior
  *  (http://www.meiocodigo.com/projects/meioupload/)
- * Which is in turn based upon Tane Piper's improved uplaod behavior
+ * Which is in turn based upon Tane Piper's improved upload behavior
  *  (http://digitalspaghetti.tooum.net/switchboard/blog/2497:Upload_Behavior_for_CakePHP_12)
  *
  * @author Jose Diaz-Gonzalez (support@savant.be)
