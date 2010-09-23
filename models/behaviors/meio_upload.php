@@ -45,6 +45,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Place any custom thumbsize in model config instead,
 		),
 		'thumbnailQuality' => 75, // Global Thumbnail Quality
+		'thumbnailDir' => 'thumb',
 		'useImageMagick' => false,
 		'imageMagickPath' => '/usr/bin/convert', // Path to imageMagick on your server
 		'fields' => array(
@@ -276,9 +277,9 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Create the folders for the uploads
 			// Create the folders for the uploads
 			if (!empty($options['thumbsizes'])) {
-				$this->_createFolders($options['dir'], array_keys($options['thumbsizes']));
+				$this->_createFolders($options['dir'], $options['thumbnailDir'], array_keys($options['thumbsizes']));
 			} else {
-				$this->_createFolders($options['dir'], array());
+				$this->_createFolders($options['dir'], $options['thumbnailDir'], array());
 			}
 
 			// Replace tokens in the fields names
@@ -397,7 +398,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
 			foreach ($this->__fields[$model->alias] as $field => $options) {
-				$this->_setFileToRemove($model, $field);
+				$this->_setFileToRemove($model, $field, $options['thumbnailDir']);
 			}
 		}
 		return true;
@@ -733,7 +734,7 @@ class MeioUploadBehavior extends ModelBehavior {
 					}
 					//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 					if (!empty($data[$model->alias][$model->primaryKey])) {
-						$this->_setFileToRemove($model, $fieldName);
+						$this->_setFileToRemove($model, $fieldName, $option['thumbnailDir']);
 					}
 				}
 
@@ -748,7 +749,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 				if (!empty($data[$model->alias][$model->primaryKey])) {
-					$this->_setFileToRemove($model, $fieldName);
+					$this->_setFileToRemove($model, $fieldName, $option['thumbnailDir']);
 				}
 				
 				// save in encrypted folder if specified
@@ -816,9 +817,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		foreach ($options['thumbsizes'] as $key => $value) {
 			// Generate the name for the thumbnail
 			if (isset($options['uploadName']) && !empty($options['uploadName'])) {
-				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$options['uploadName']], $ext);
+				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $options['thumbnailDir'], $key, $data[$model->alias][$options['uploadName']], $ext);
 			} else {
-				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $key, $data[$model->alias][$fieldName]['name']);
+				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $options['thumbnailDir'], $key, $data[$model->alias][$fieldName]['name']);
 			}
 			$params = array();
 			if (isset($value['width'])) {
@@ -1024,18 +1025,19 @@ class MeioUploadBehavior extends ModelBehavior {
  *
  * @param string $saveAs name for original file
  * @param string $dir directory for all uploads
+ * @param string $thumbDir Path to thumbnails
  * @param string $key thumbnail size
  * @param string $fieldToSaveAs field in model to save as
  * @param string $sub substring to append to directory for naming
  * @return string
  * @access protected
  */
-	function _getThumbnailName($saveAs, $dir, $key, $fieldToSaveAs, $sub = null) {
+	function _getThumbnailName($saveAs, $dir, $thumbDir, $key, $fieldToSaveAs, $sub = null) {
 		if ($key == 'normal') {
 			return $saveAs;
 		}
 		// Otherwise, set the thumb filename to thumb.$key.$filename.$ext
-		$result = $dir . DS . 'thumb' . DS . $key . DS . $fieldToSaveAs;
+		$result = $dir . DS . $thumbDir . DS . $key . DS . $fieldToSaveAs;
 		if (isset($sub)) {
 			return $result . '.' . $sub;
 		}
@@ -1102,11 +1104,12 @@ class MeioUploadBehavior extends ModelBehavior {
  * Creates thumbnail folders if they do not already exist
  *
  * @param string $dir Path to uploads
+ * @param string $thumbDir Path to thumbnails
  * @param array $thumbsizes
  * @return void
  * @access protected
  */
-	function _createFolders($dir, $thumbsizes) {
+	function _createFolders($dir, $thumbDir, $thumbsizes) {
 		if ($dir[0] !== '/') {
 			$dir = WWW_ROOT . $dir;
 		}
@@ -1115,12 +1118,12 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (!$folder->cd($dir)) {
 			$folder->create($dir);
 		}
-		if (!$folder->cd($dir. DS . 'thumb')) {
-			$folder->create($dir . DS . 'thumb');
+		if (!$folder->cd($dir. DS . $thumbDir)) {
+			$folder->create($dir . DS . $thumbDir);
 		}
 		foreach ($thumbsizes as $thumbsize) {
-			if ($thumbsize != 'normal' && !$folder->cd($dir . DS .'thumb' . DS . $thumbsize)) {
-				$folder->create($dir . DS . 'thumb' . DS . $thumbsize);
+			if ($thumbsize != 'normal' && !$folder->cd($dir . DS . $thumbDir . DS . $thumbsize)) {
+				$folder->create($dir . DS . $thumbDir . DS . $thumbsize);
 			}
 		}
 	}
@@ -1153,10 +1156,11 @@ class MeioUploadBehavior extends ModelBehavior {
  *
  * @param object $model Reference to model
  * @param sting $fieldName
+ * @param string $thumbDir Path to thumbnails
  * @return void
  * @access protected
  */
-	function _setFileToRemove(&$model, $fieldName) {
+	function _setFileToRemove(&$model, $fieldName, $thumbDir) {
 		$filename = $model->field($fieldName);
 		if (!empty($filename) && $filename != $this->__fields[$model->alias][$fieldName]['default']) {
 			$this->__filesToRemove[] = array(
@@ -1169,7 +1173,7 @@ class MeioUploadBehavior extends ModelBehavior {
 					if ($key === 'normal') {
 						$subpath = '';
 					} else {
-						$subpath = DS . 'thumb' . DS . $key;
+						$subpath = DS . $thumbDir . DS . $key;
 					}
 					$this->__filesToRemove[] = array(
 						'field' => $fieldName,
