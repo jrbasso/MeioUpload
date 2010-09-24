@@ -1,0 +1,84 @@
+# LANGUAGE translation of CakePHP Application
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# No version information was available in the source files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: MeioUpload\n"
+"POT-Creation-Date: 2009-05-21 22:34-0300\n"
+"PO-Revision-Date: 2010-09-23 20:40+0100\n"
+"Last-Translator: Atratus <atratus@go2.pl>\n"
+"Language-Team: Juan Basso <jrbasso@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+#: \models\behaviors\meio_upload.php:149
+msgid "This field has not been defined between the parameters of MeioUploadBehavior."
+msgstr "To pole nie zostało zdefiniowane wśród parametrów MeioUploadBehavior."
+
+#: \models\behaviors\meio_upload.php:152
+msgid "The directory where the file would be placed there or is protected against writing."
+msgstr "Katalog, w którym plik miałby zostać umieszczony jest zabezpieczony przed zapisem."
+
+#: \models\behaviors\meio_upload.php:155
+msgid "The file can not be empty."
+msgstr "Plik nie może być pusty."
+
+#: \models\behaviors\meio_upload.php:158
+msgid "There were problems in uploading the file."
+msgstr "Pojawiły się problemy przy wgrywaniu pliku."
+
+#: \models\behaviors\meio_upload.php:161
+msgid "The maximum file size is exceeded."
+msgstr "Maksymalny rozmiar pliku został przekroczony."
+
+#: \models\behaviors\meio_upload.php:164
+msgid "Invalid file type."
+msgstr "Nieprawidłowy typ pliku."
+
+#: \models\behaviors\meio_upload.php:167
+msgid "Invalid file extension."
+msgstr "Nieprawidłowe rozszerzenie pliku."
+
+#: \models\behaviors\meio_upload.php:191
+msgid "MeioUploadBehavior Error: The field \"%s\" doesn't exists in the model \"%s\"."
+msgstr "Błąd MeioUploadBehavior: Pole \"%s\" nie istnieje w modelu \"%s\"."
+
+#: \models\behaviors\meio_upload.php:199
+msgid "MeioUploadBehavior Error: The default option must be the filename with extension."
+msgstr "Błąd MeioUploadBehavior: Opcją domyślną musi być nazwa pliku z rozszerzeniem."
+
+#: \models\behaviors\meio_upload.php:206
+msgid "MeioUploadBehavior Error: The thumbsizes names must be alphanumeric."
+msgstr "Błąd MeioUploadBehavior: Nazwy pól thumbsizes muszą być alfanumeryczne."
+
+#: \models\behaviors\meio_upload.php:283
+msgid "MeioUploadBehavior Error: The max_size option format is invalid."
+msgstr "Błąd MeioUploadBehavior: Format pola max_size jest nieprawidłowy."
+
+#: \models\behaviors\meio_upload.php:299
+msgid "MeioUploadBehavior Error: The max_size unit is invalid."
+msgstr "Błąd MeioUploadBehavior: Jednostka pola max_size jest nieprawidłowa"
+
+#: \models\behaviors\meio_upload.php:341
+msgid "MeioUploadBehavior Error: The field \"%s\" wasn't declared as part of the MeioUploadBehavior in model \"%s\"."
+msgstr "Błąd MeioUploadBehavior: Pole \"%s\" nie zostało zdeklarowane jako część MeioUploadBehavior w modelu \"%s\"."
+
+#: \models\behaviors\meio_upload.php:365
+msgid "MeioUploadBehavior Error: The directory %s does not exist and cannot be created."
+msgstr "Błąd MeioUploadBehavior: Katalog %s nie istnieje i nie może być utworzony."
+
+#: \models\behaviors\meio_upload.php:369
+msgid "MeioUploadBehavior Error: The directory %s does not exist."
+msgstr "Błąd MeioUploadBehavior: Katalog %s nie istnieje."
+
+#: \models\behaviors\meio_upload.php:376
+msgid "MeioUploadBehavior Error: The directory %s isn't writable."
+msgstr "Błąd MeioUploadBehavior: Katalog %s nie jest skonfigurowany do zapisu."
+
+#: \models\behaviors\meio_upload.php:627
+msgid "Problems in the copy of the file."
+msgstr "Wystąpił problem przy kopiowaniu pliku"
+
