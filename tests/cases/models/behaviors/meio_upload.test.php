@@ -295,4 +295,3 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg'));
 	}
 }
-?>

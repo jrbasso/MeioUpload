@@ -944,4 +944,3 @@ class MeioUploadBehavior extends ModelBehavior {
 		$this->__fields[$model->alias][$field]['dir'] = $dir;
 	}
 }
-?>
