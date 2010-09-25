@@ -2,10 +2,11 @@
 /**
  * MeioUpload Behavior
  *
- *
- * @package meio_upload
- * @subpackage meio_upload.models.behaviors
- * @version 3.0
+ * @package      meio_upload
+ * @subpackage   meio_upload.tests.cases.models.behaviors
+ * @version      3.0
+ * @link         http://github.com/jrbasso/MeioUpload
+ * @license      MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 App::import('Core', array('File', 'Folder'));
 

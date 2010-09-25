@@ -1,10 +1,43 @@
 <?php
+/**
+ * MeioUpload Behavior Tests
+ *
+ * @package      meio_upload
+ * @subpackage   meio_upload.tests.cases.models.behaviors
+ * @since        3.0
+ * @link         http://github.com/jrbasso/MeioUpload
+ * @license      MIT License (http://www.opensource.org/licenses/mit-license.php)
+ */
 
 App::import('Behavior', 'MeioUpload.MeioUpload');
 
+/**
+ * Meiomodel
+ *
+ */
 class Meiomodel extends CakeTestModel {
+/**
+ * Name
+ *
+ * @var string
+ * @access public
+ */
 	var $name = 'Meiomodel';
+
+/**
+ * useTable
+ *
+ * @var boolean
+ * @access public
+ */
 	var $useTable = false;
+
+/**
+ * Behaviors
+ *
+ * @var array
+ * @access public
+ */
 	var $actsAs = array(
 		'MeioUpload.MeioUpload' => array(
 			'filename' => array()
@@ -12,23 +45,58 @@ class Meiomodel extends CakeTestModel {
 	);
 }
 
+/**
+ * MeioUploadTestCase
+ *
+ */
 class MeioUploadTestCase extends CakeTestCase {
 
+/**
+ * MeioUpload
+ *
+ * @var object
+ * @access public
+ */
 	var $MeioUpload = null;
+
+/**
+ * TestModel
+ *
+ * @var object
+ * @access public
+ */
 	var $TestModel = null;
 
+/**
+ * start
+ *
+ * @return void
+ * @access public
+ */
 	function start() {
 		parent::start();
 		$this->TestModel = new Meiomodel();
 		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUpload;
 	}
 
+/**
+ * end
+ *
+ * @return void
+ * @access public
+ */
 	function end() {
 		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meiomodel');
 		$folder->delete();
 		parent::end();
 	}
 
+/**
+ * testReplaceTokens
+ *
+ * @return void
+ * @access public
+ */
 	function testReplaceTokens() {
 		$result = $this->MeioUpload->_replaceTokens($this->TestModel, 'test', 'field');
 		$this->assertEqual($result, 'test');
@@ -40,6 +108,12 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual($result, 'meiomodelaaafieldxxx' . DS . 'iii' . DS . 'o' . DS . DS);
 	}
 
+/**
+ * testFixName
+ *
+ * @return void
+ * @access public
+ */
 	function testFixName() {
 		$this->TestModel->data = array(
 			$this->TestModel->alias => array(
@@ -71,6 +145,12 @@ class MeioUploadTestCase extends CakeTestCase {
 		unlink($file);
 	}
 
+/**
+ * testSplitFilenameAndExt
+ *
+ * @return void
+ * @access public
+ */
 	function testSplitFilenameAndExt() {
 		$result = $this->MeioUpload->_splitFilenameAndExt('default.jpg');
 		$this->assertEqual($result, array('default', 'jpg'));
@@ -88,6 +168,12 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual($result, array('default.hi', 'jpg'));
 	}
 
+/**
+ * testSizeToBytes
+ *
+ * @return void
+ * @access public
+ */
 	function testSizeToBytes() {
 		$result = $this->MeioUpload->_sizeToBytes(100);
 		$this->assertEqual($result, 100);
@@ -109,6 +195,12 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual($result, 2097152);
 	}
 
+/**
+ * testCreateFolders
+ *
+ * @return void
+ * @access public
+ */
 	function testCreateFolders() {
 		if ($this->skipIf(is_dir(WWW_ROOT . 'test'), 'Directory "test" in webroot exists.')) {
 			return;
@@ -125,12 +217,40 @@ class MeioUploadTestCase extends CakeTestCase {
 	}
 }
 
+/**
+ * MeioUploadWebTest
+ *
+ */
 class MeioUploadWebTest extends CakeWebTestCase {
 
+/**
+ * db
+ *
+ * @var object
+ * @access public
+ */
 	var $db;
+
+/**
+ * fixture
+ *
+ * @var array
+ * @access public
+ */
 	var $fixture;
+
+/**
+ * Model
+ *
+ * @var object
+ * @access public
+ */
 	var $Model;
 
+/**
+ * Constructor
+ *
+ */
 	function MeioUploadWebTest($label = false) {
 		parent::CakeWebTestCase($label);
 
@@ -144,12 +264,24 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		$this->fixture->drop($this->db);
 	}
 
+/**
+ * setUp
+ *
+ * @return void
+ * @access public
+ */
 	function setUp() {
 		parent::setUp();
 		$this->fixture->create($this->db);
 		$this->Model =& ClassRegistry::init('MeioUpload.Meio');
 	}
 
+/**
+ * tearDown
+ *
+ * @return void
+ * @access public
+ */
 	function tearDown() {
 		$this->fixture->drop($this->db);
 		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meio');
@@ -157,6 +289,12 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		parent::tearDown();
 	}
 
+/**
+ * testSimpleUpload
+ *
+ * @return void
+ * @access public
+ */
 	function testSimpleUpload() {
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
 		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
@@ -182,6 +320,12 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		$this->assertEqual($result, $expected);
 	}
 
+/**
+ * testConflitName
+ *
+ * @return void
+ * @access public
+ */
 	function testConflitName() {
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
 		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
@@ -219,6 +363,12 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		);
 	}
 
+/**
+ * testThumb
+ *
+ * @return void
+ * @access public
+ */
 	function testThumb() {
 		if ($this->skipIf(!App::import('Vendor', 'phpthumb', array('file' => 'phpThumb' . DS . 'phpthumb.class.php')), 'PHPThumb cant be loaded.')) {
 			return;
@@ -254,6 +404,12 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		$this->assertEqual(20, $height);
 	}
 
+/**
+ * testDeleteRow
+ *
+ * @return void
+ * @access public
+ */
 	function testDeleteRow() {
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
 		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
@@ -271,6 +427,12 @@ class MeioUploadWebTest extends CakeWebTestCase {
 		$this->assertFalse(is_file(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'thumb' . DS . 'mode4' . DS . 'test.jpg'));
 	}
 
+/**
+ * testRemoveFlag
+ *
+ * @return void
+ * @access public
+ */
 	function testRemoveFlag() {
 		$url = Router::url(array('plugin' => 'meio_upload', 'controller' => 'meios'), true);
 		$file = TEST_CAKE_CORE_INCLUDE_PATH . 'tests' . DS . 'test_app' . DS . 'views' . DS . 'themed' . DS . 'test_theme' . DS . 'webroot' . DS . 'img' . DS . 'test.jpg';
