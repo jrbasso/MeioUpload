@@ -548,7 +548,14 @@ class MeioUploadBehavior extends ModelBehavior {
 				if ($info !== false && in_array($info['mime'], $options['allowedMime'])) {
 					continue;
 				}
-				if (function_exists('mime_content_type')) {
+				if (function_exists('finfo_open')) {
+					$finfo = finfo_open(FILEINFO_MIME_TYPE);
+					$info = finfo_file($finfo, $field['tmp_name']);
+					if ($info !== false && in_array($info, $options['allowedMime'])) {
+						continue;
+					}
+				}
+				if (function_exists('mime_content_type')) { // @deprecated
 					$info = mime_content_type($field['tmp_name']);
 					if ($info !== false && in_array($info, $options['allowedMime'])) {
 						continue;
