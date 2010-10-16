@@ -760,9 +760,9 @@ class MeioUploadBehavior extends ModelBehavior {
 
 				//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 				if (!empty($data[$model->alias][$model->primaryKey])) {
-					$this->_setFileToRemove($model, $fieldName, $option['thumbnailDir']);
+					$this->_setFileToRemove($model, $fieldName, $options['thumbnailDir']);
 				}
-				
+
 				// save in encrypted folder if specified
 				if ($options['encryptedFolder']) {
 					// setup UUID as a unique folder name
