@@ -12,17 +12,17 @@
 App::import('Behavior', 'MeioUpload.MeioUpload');
 
 /**
- * Meiomodel
+ * Meio
  *
  */
-class Meiomodel extends CakeTestModel {
+class Meio extends CakeTestModel {
 /**
  * Name
  *
  * @var string
  * @access public
  */
-	var $name = 'Meiomodel';
+	var $name = 'Meio';
 
 /**
  * useTable
@@ -75,7 +75,7 @@ class MeioUploadTestCase extends CakeTestCase {
  */
 	function start() {
 		parent::start();
-		$this->TestModel = new Meiomodel();
+		$this->TestModel = new Meio();
 		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUpload;
 	}
 
@@ -86,7 +86,7 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function end() {
-		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meiomodel');
+		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meio');
 		$folder->delete();
 		parent::end();
 	}
@@ -105,7 +105,7 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual($result, '{Model}aaa');
 
 		$result = $this->MeioUpload->_replaceTokens($this->TestModel, '{ModelName}aaa{fieldName}xxx{DS}iii\\o//', 'field');
-		$this->assertEqual($result, 'meiomodelaaafieldxxx' . DS . 'iii' . DS . 'o' . DS . DS);
+		$this->assertEqual($result, 'meioaaafieldxxx' . DS . 'iii' . DS . 'o' . DS . DS);
 	}
 
 /**
@@ -135,7 +135,7 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->MeioUpload->_fixName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default_1_hello.jpg');
 
-		$file = WWW_ROOT . 'uploads' . DS . 'meiomodel' . DS . 'filename' . DS . 'default.jpg';
+		$file = WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'default.jpg';
 		if ($this->skipIf(!@touch($file), 'Fail to create file.')) {
 			return;
 		}
