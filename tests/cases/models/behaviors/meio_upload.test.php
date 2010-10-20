@@ -12,6 +12,34 @@
 App::import('Behavior', 'MeioUpload.MeioUpload');
 
 /**
+ * MeioUploadTestBehavior
+ *
+ */
+class MeioUploadTestBehavior extends MeioUploadBehavior {
+
+	function replaceTokens(&$model, $string, $fieldName) {
+		return $this->_replaceTokens($model, $string, $fieldName);
+	}
+
+	function fixName(&$model, $fieldName, $checkFile = true) {
+		return $this->_fixName($model, $fieldName, $checkFile);
+	}
+
+	function splitFilenameAndExt($filename) {
+		return $this->_splitFilenameAndExt($filename);
+	}
+
+	function sizeToBytes($size) {
+		return $this->_sizeToBytes($size);
+	}
+
+	function createFolders($dir, $thumbsizes) {
+		return $this->_createFolders($dir, $thumbsizes);
+	}
+
+}
+
+/**
  * Meio
  *
  */
@@ -39,7 +67,7 @@ class Meio extends CakeTestModel {
  * @access public
  */
 	var $actsAs = array(
-		'MeioUpload.MeioUpload' => array(
+		'MeioUploadTest' => array(
 			'filename' => array()
 		)
 	);
@@ -76,7 +104,7 @@ class MeioUploadTestCase extends CakeTestCase {
 	function start() {
 		parent::start();
 		$this->TestModel = new Meio();
-		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUpload;
+		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUploadTest;
 	}
 
 /**
@@ -98,13 +126,13 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function testReplaceTokens() {
-		$result = $this->MeioUpload->_replaceTokens($this->TestModel, 'test', 'field');
+		$result = $this->MeioUpload->replaceTokens($this->TestModel, 'test', 'field');
 		$this->assertEqual($result, 'test');
 
-		$result = $this->MeioUpload->_replaceTokens($this->TestModel, '{Model}aaa', 'field');
+		$result = $this->MeioUpload->replaceTokens($this->TestModel, '{Model}aaa', 'field');
 		$this->assertEqual($result, '{Model}aaa');
 
-		$result = $this->MeioUpload->_replaceTokens($this->TestModel, '{ModelName}aaa{fieldName}xxx{DS}iii\\o//', 'field');
+		$result = $this->MeioUpload->replaceTokens($this->TestModel, '{ModelName}aaa{fieldName}xxx{DS}iii\\o//', 'field');
 		$this->assertEqual($result, 'meioaaafieldxxx' . DS . 'iii' . DS . 'o' . DS . DS);
 	}
 
@@ -124,15 +152,15 @@ class MeioUploadTestCase extends CakeTestCase {
 			)
 		);
 
-		$this->MeioUpload->_fixName($this->TestModel, 'filename', false);
+		$this->MeioUpload->fixName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'xxx.jpg');
 
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default.jpg';
-		$this->MeioUpload->_fixName($this->TestModel, 'filename', false);
+		$this->MeioUpload->fixName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default.jpg');
 
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default_1.hello.jpg';
-		$this->MeioUpload->_fixName($this->TestModel, 'filename', false);
+		$this->MeioUpload->fixName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default_1_hello.jpg');
 
 		$file = WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'default.jpg';
@@ -140,7 +168,7 @@ class MeioUploadTestCase extends CakeTestCase {
 			return;
 		}
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default.jpg';
-		$this->MeioUpload->_fixName($this->TestModel, 'filename', true);
+		$this->MeioUpload->fixName($this->TestModel, 'filename', true);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default-0.jpg');
 		unlink($file);
 	}
@@ -152,19 +180,19 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function testSplitFilenameAndExt() {
-		$result = $this->MeioUpload->_splitFilenameAndExt('default.jpg');
+		$result = $this->MeioUpload->splitFilenameAndExt('default.jpg');
 		$this->assertEqual($result, array('default', 'jpg'));
 
-		$result = $this->MeioUpload->_splitFilenameAndExt('default-1.jpg');
+		$result = $this->MeioUpload->splitFilenameAndExt('default-1.jpg');
 		$this->assertEqual($result, array('default-1', 'jpg'));
 
-		$result = $this->MeioUpload->_splitFilenameAndExt('default_1.jpg');
+		$result = $this->MeioUpload->splitFilenameAndExt('default_1.jpg');
 		$this->assertEqual($result, array('default_1', 'jpg'));
 
-		$result = $this->MeioUpload->_splitFilenameAndExt('default.xxx');
+		$result = $this->MeioUpload->splitFilenameAndExt('default.xxx');
 		$this->assertEqual($result, array('default', 'xxx'));
 
-		$result = $this->MeioUpload->_splitFilenameAndExt('default.hi.jpg');
+		$result = $this->MeioUpload->splitFilenameAndExt('default.hi.jpg');
 		$this->assertEqual($result, array('default.hi', 'jpg'));
 	}
 
@@ -175,23 +203,23 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function testSizeToBytes() {
-		$result = $this->MeioUpload->_sizeToBytes(100);
+		$result = $this->MeioUpload->sizeToBytes(100);
 		$this->assertEqual($result, 100);
 
-		$result = $this->MeioUpload->_sizeToBytes(2000);
+		$result = $this->MeioUpload->sizeToBytes(2000);
 		$this->assertEqual($result, 2000);
 
-		$result = $this->MeioUpload->_sizeToBytes('1KB');
+		$result = $this->MeioUpload->sizeToBytes('1KB');
 		$this->assertEqual($result, 1024);
 
-		$result = $this->MeioUpload->_sizeToBytes('1 KB');
+		$result = $this->MeioUpload->sizeToBytes('1 KB');
 		$this->assertEqual($result, 1024);
 
-		$result = $this->MeioUpload->_sizeToBytes('1 kb');
+		$result = $this->MeioUpload->sizeToBytes('1 kb');
 		$this->assertEqual($result, 1024);
 
 		$this->expectError();
-		$result = $this->MeioUpload->_sizeToBytes('1 xx');
+		$result = $this->MeioUpload->sizeToBytes('1 xx');
 		$this->assertEqual($result, 2097152);
 	}
 
@@ -205,7 +233,7 @@ class MeioUploadTestCase extends CakeTestCase {
 		if ($this->skipIf(is_dir(WWW_ROOT . 'test'), 'Directory "test" in webroot exists.')) {
 			return;
 		}
-		$this->MeioUpload->_createFolders('test', array('a', 'b', 'c'));
+		$this->MeioUpload->createFolders('test', array('a', 'b', 'c'));
 		$this->assertTrue(is_dir(WWW_ROOT . 'test'));
 		$this->assertTrue(is_dir(WWW_ROOT . 'test' . DS . 'thumb' . DS . 'a'));
 		$this->assertTrue(is_dir(WWW_ROOT . 'test' . DS . 'thumb' . DS . 'b'));
