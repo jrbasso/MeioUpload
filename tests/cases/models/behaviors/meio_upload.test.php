@@ -37,6 +37,13 @@ class MeioUploadTestBehavior extends MeioUploadBehavior {
 		return $this->_createFolders($dir, $thumbsizes);
 	}
 
+	function _copyFileFromTemp($tmpName, $saveAs) {
+		if (!copy($tmpName, $saveAs)) {
+			return __d('meio_upload', 'Problems in the copy of the file.', true);
+		}
+		return true;
+	}
+
 }
 
 /**
