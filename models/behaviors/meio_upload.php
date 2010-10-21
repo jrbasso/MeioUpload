@@ -20,7 +20,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $_defaultOptions = array(
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'adjustFilename' => 'fix', // ajust the filename. Can be 'fix', false/'none' or 'random'
-		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
 		'thumbsizes' => array(
 			// Place any custom thumbsize in model config instead,
@@ -231,33 +230,25 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the file has an allowed extension.
+ * Validator: Checks if the file has an allowed extension.
  *
  * @param object $model
  * @param array $data
+ * @param mixed $extAllowed
+ * @param mixed $extra
  * @return boolean
  * @access public
  */
-	function uploadCheckInvalidExt(&$model, $data) {
+	function uploadExtension(&$model, $data, $extAllowed, $extra = null) {
+		if (!$extra) {
+			$extAllowed = array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico');
+		}
+		if (!is_array($extAllowed)) {
+			$extAllowed = array($extAllowed);
+		}
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['InvalidExt']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (!empty($field['name'])) {
-				if (!empty($options['allowedExt'])) {
-					$matches = 0;
-					foreach ($options['allowedExt'] as $extension) {
-						if (strtolower(substr($field['name'], -strlen($extension))) === strtolower($extension)) {
-							$matches = 1;
-							break;
-						}
-					}
-
-					if ($matches === 0) {
-						return false;
-					}
-				}
+			if (!in_array(pathinfo($field['name'], PATHINFO_EXTENSION), $extAllowed)) {
+				return false;
 			}
 		}
 		return true;
