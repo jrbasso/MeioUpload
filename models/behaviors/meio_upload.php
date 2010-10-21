@@ -221,11 +221,10 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 
 			// Replace tokens in the fields names
-			if ($options['useTable']) {
-				foreach ($options['fields'] as $fieldToken => $fieldName) {
-					$options['fields'][$fieldToken] = $this->_replaceTokens($model, $fieldName, $field);
-				}
+			foreach ($options['fields'] as $fieldToken => $fieldName) {
+				$options['fields'][$fieldToken] = $this->_replaceTokens($model, $fieldName, $field);
 			}
+
 			$this->_config[$model->alias][$field] = $options;
 		}
 	}
