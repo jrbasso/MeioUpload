@@ -181,10 +181,12 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the file isn't bigger then the max file size option.
+ * Validator: Checks if the file isn't bigger then the max file size option.
  *
  * @param object $model
  * @param array $data
+ * @param mixed $maxSize
+ * @param mixed $extra
  * @return boolean
  * @access public
  */
