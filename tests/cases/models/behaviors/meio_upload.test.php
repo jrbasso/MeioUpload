@@ -44,6 +44,10 @@ class MeioUploadTestBehavior extends MeioUploadBehavior {
 		return true;
 	}
 
+	function readConfig($path) {
+		return Set::extract($path, $this->_config);
+	}
+
 }
 
 /**
@@ -78,6 +82,15 @@ class Meio extends CakeTestModel {
 			'filename' => array()
 		)
 	);
+
+	function __construct($meioConfig = array()) {
+		$this->actsAs = array(
+			'MeioUploadTest' => array(
+				'filename' => $meioConfig
+			)
+		);
+		parent::__construct();
+	}
 }
 
 /**
@@ -250,4 +263,18 @@ class MeioUploadTestCase extends CakeTestCase {
 		$folder->cd(WWW_ROOT . 'test');
 		$folder->delete();
 	}
+
+/**
+ * testChangeDir
+ *
+ * @return void
+ * @access public
+ */
+	function testChangeDir() {
+		$model = new Meio(array('dir' => TMP));
+		$this->assertEqual($model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir') . DS, TMP);
+		$model->Behaviors->MeioUploadTest->changeDir($model, 'filename', CACHE);
+		$this->assertEqual($model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir') . DS, CACHE);
+	}
+
 }

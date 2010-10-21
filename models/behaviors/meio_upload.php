@@ -942,6 +942,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function changeDir(&$model, $field, $dir){
-		$this->_config[$model->alias][$field]['dir'] = $dir;
+		$this->_config[$model->alias][$field]['dir'] = rtrim($dir, DS);
 	}
 }
