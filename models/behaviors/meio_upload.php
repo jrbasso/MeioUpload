@@ -50,11 +50,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	var $_defaultValidations = array(
-		'FieldName' => array(
-			'rule' => array('uploadCheckFieldName'),
-			'check' => true,
-			'last' => true
-		),
 		'Dir' => array(
 			'rule' => array('uploadCheckDir'),
 			'check' => true,
@@ -133,9 +128,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function __construct() {
 		$messages = array(
-			'FieldName' => array(
-				'message' => __d('meio_upload', 'This field has not been defined between the parameters of MeioUploadBehavior.', true)
-			),
 			'Dir' => array(
 				'message' => __d('meio_upload', 'The directory where the file would be placed there or is protected against writing.', true)
 			),
@@ -279,29 +271,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function afterDelete(&$model) {
 		$this->_removeListOfFiles();
-	}
-
-/**
- * Checks if the field was declared in the MeioUpload Behavior setup
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckFieldName(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['FieldName']['check']) {
-				continue;
-			}
-			if (isset($this->_config[$model->alias][$fieldName])) {
-				continue;
-			} else {
-				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias), E_USER_WARNING);
-				return false;
-			}
-		}
-		return true;
 	}
 
 /**
