@@ -50,12 +50,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	var $_defaultValidations = array(
-		'Empty' => array(
-			'rule' => array('uploadCheckEmpty'),
-			'check' => true,
-			'on' => 'create',
-			'last' => true
-		),
 		'UploadError' => array(
 			'rule' => array('uploadCheckUploadError'),
 			'check' => true,
@@ -123,9 +117,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function __construct() {
 		$messages = array(
-			'Empty' => array(
-				'message' => __d('meio_upload', 'The file can not be empty.', true)
-			),
 			'UploadError' => array(
 				'message' => __d('meio_upload', 'There were problems in uploading the file.', true)
 			),
@@ -263,28 +254,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function afterDelete(&$model) {
 		$this->_removeListOfFiles();
-	}
-
-/**
- * Checks if the filename is not empty.
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckEmpty(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['Empty']['check']) {
-				continue;
-			}
-			if (empty($field['remove'])) {
-				if (empty($field['name'])) {
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 
 /**
