@@ -39,47 +39,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			'maxWidth' => 0,
 			'minHeight' => 0,
 			'maxHeight' => 0
-		),
-		'validations' => array()
-	);
-
-/**
- * Default validations
- *
- * @var array
- * @access protected
- */
-	var $_defaultValidations = array(
-		'InvalidMime' => array(
-			'rule' => array('uploadCheckInvalidMime'),
-			'check' => true,
-			'last' => true
-		),
-		'InvalidExt' => array(
-			'rule' => array('uploadCheckInvalidExt'),
-			'check' => true,
-			'last' => true
-		),
-		'MinWidth' => array(
-			'rule' => array('uploadCheckMinWidth'),
-			'check' => true,
-			'last' => true
-		),
-		'MaxWidth' => array(
-			'rule' => array('uploadCheckMaxWidth'),
-			'check' => true,
-			'last' => true
-		),
-		'MinHeight' => array(
-			'rule' => array('uploadCheckMinHeight'),
-			'check' => true,
-			'last' => true
-		),
-		'MaxHeight' => array(
-			'rule' => array('uploadCheckMaxHeight'),
-			'check' => true,
-			'last' => true
-		),
+		)
 	);
 
 /**
