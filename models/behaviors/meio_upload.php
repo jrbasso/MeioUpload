@@ -20,7 +20,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $_defaultOptions = array(
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'adjustFilename' => 'fix', // ajust the filename. Can be 'fix', false/'none' or 'random'
-		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
@@ -69,11 +68,6 @@ class MeioUploadBehavior extends ModelBehavior {
 		),
 		'UploadError' => array(
 			'rule' => array('uploadCheckUploadError'),
-			'check' => true,
-			'last' => true
-		),
-		'MaxSize' => array(
-			'rule' => array('uploadCheckMaxSize'),
 			'check' => true,
 			'last' => true
 		),
@@ -151,9 +145,6 @@ class MeioUploadBehavior extends ModelBehavior {
 			'UploadError' => array(
 				'message' => __d('meio_upload', 'There were problems in uploading the file.', true)
 			),
-			'MaxSize' => array(
-				'message' => __d('meio_upload', 'The maximum file size is exceeded.', true)
-			),
 			'InvalidMime' => array(
 				'message' => __d('meio_upload', 'Invalid file type.', true)
 			),
@@ -211,9 +202,6 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 			}
 
-			// Process the max_size if it is not numeric
-			$options['maxSize'] = $this->_sizeToBytes($options['maxSize']);
-
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field), DS);
 			if ($options['dir'][0] !== DS && !preg_match('/^[a-z]:/i', $options['dir'])) { // Relative path
@@ -227,24 +215,6 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			$this->_config[$model->alias][$field] = $options;
 		}
-	}
-
-/**
- * Sets the validation rules for each field.
- *
- * @param object $model
- * @return boolean Always true
- * @access public
- */
-	function beforeValidate(&$model) {
-		static $setup = false;
-		if ($setup === false) {
-			foreach ($this->_config[$model->alias] as $fieldName => $options) {
-				$this->_setupValidation($model, $fieldName, $options);
-			}
-			$setup = true;
-		}
-		return true;
 	}
 
 /**
@@ -418,13 +388,16 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean
  * @access public
  */
-	function uploadCheckMaxSize(&$model, $data) {
+	function uploadMaxSize(&$model, $data, $maxSize = 2097152, $extra = null) {
+		if (!$extra) {
+			$maxSize = 2097152;
+		}
+		$maxSize = $this->_sizeToBytes($maxSize);
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['MaxSize']['check']) {
+			if (!isset($field['size'])) {
 				continue;
 			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (!empty($field['name']) && $field['size'] > $options['maxSize']) {
+			if ($field['size'] > $maxSize) {
 				return false;
 			}
 		}
@@ -805,31 +778,6 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return 2097152;
 	}
-
-/**
- * Sets the validation for each field, based on the options.
- *
- * @param object $model
- * @param string $fieldName
- * @param array $options
- * @return void
- * @access protected
- */
-	function _setupValidation(&$model, $fieldName, $options) {
-		$options = $this->_config[$model->alias][$fieldName];
-
-		if (isset($model->validate[$fieldName])) {
-			if (isset($model->validate[$fieldName]['rule'])) {
-				$model->validate[$fieldName] = array(
-					'oldValidation' => $model->validates[$fieldName]
-				);
-			}
-		} else {
-			$model->validate[$fieldName] = array();
-		}
-		$model->validate[$fieldName] = Set::merge($this->_defaultValidations, $options['validations'], $model->validate[$fieldName]);
-	}
-
 
 /**
  * Creates thumbnail folders if they do not already exist
