@@ -112,37 +112,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $__filesToRemove = array();
 
 /**
- * Constructor
- *
- */
-	function __construct() {
-		$messages = array(
-			'UploadError' => array(
-				'message' => __d('meio_upload', 'There were problems in uploading the file.', true)
-			),
-			'InvalidMime' => array(
-				'message' => __d('meio_upload', 'Invalid file type.', true)
-			),
-			'InvalidExt' => array(
-				'message' => __d('meio_upload', 'Invalid file extension.', true)
-			),
-			'MinWidth' => array(
-				'message' => __d('meio_upload', 'Image width is smaller than minimum allowed.', true)
-			),
-			'MinHeight' => array(
-				'message' => __d('meio_upload', 'Image height is smaller than minimum allowed.', true)
-			),
-			'MaxWidth' => array(
-				'message' => __d('meio_upload', 'Image width is larger than maximum allowed.', true)
-			),
-			'MaxHeight' => array(
-				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.', true)
-			)
-		);
-		$this->_defaultOptions['validations'] = Set::merge($this->_defaultValidations, $messages);
-	}
-
-/**
  * Setup the behavior.
  * It stores a reference to the model, merges the default options with the options for each field, and setup the validation rules.
  *
