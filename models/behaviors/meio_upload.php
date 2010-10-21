@@ -50,11 +50,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	var $_defaultValidations = array(
-		'Dir' => array(
-			'rule' => array('uploadCheckDir'),
-			'check' => true,
-			'last' => true
-		),
 		'Empty' => array(
 			'rule' => array('uploadCheckEmpty'),
 			'check' => true,
@@ -128,9 +123,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function __construct() {
 		$messages = array(
-			'Dir' => array(
-				'message' => __d('meio_upload', 'The directory where the file would be placed there or is protected against writing.', true)
-			),
 			'Empty' => array(
 				'message' => __d('meio_upload', 'The file can not be empty.', true)
 			),
@@ -271,40 +263,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function afterDelete(&$model) {
 		$this->_removeListOfFiles();
-	}
-
-/**
- * Checks if the folder exists or can be created or writable.
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckDir(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['Dir']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (empty($field['remove']) || empty($field['name'])) {
-				// Check if directory exists and create it if required
-				if (!is_dir($options['dir'])) {
-					$folder = &new Folder();
-					if (!$folder->create($options['dir'])) {
-						trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', true), $options['dir']), E_USER_WARNING);
-						return false;
-					}
-				}
-
-				// Check if directory is writable
-				if (!is_writable($options['dir'])) {
-					trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s isn\'t writable.', true), $options['dir']), E_USER_WARNING);
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 
 /**
