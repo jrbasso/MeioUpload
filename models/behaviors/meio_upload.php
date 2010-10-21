@@ -20,7 +20,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $_defaultOptions = array(
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'adjustFilename' => 'fix', // ajust the filename. Can be 'fix', false/'none' or 'random'
-		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
 		'thumbsizes' => array(
@@ -207,20 +206,24 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the file is of an allowed mime-type.
+ * Validator: Checks if the file is of an allowed mime-type.
  *
  * @param object $model
  * @param array $data
+ * @param mixed $mimeAllowed
+ * @param mixed $extra
  * @return boolean
  * @access public
  */
-	function uploadCheckInvalidMime(&$model, $data) {
+	function uploadMimeType(&$model, $data, $mimeAllowed, $extra = null) {
+		if (!$extra) {
+			$mimeAllowed = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
+		}
+		if (!is_array($mimeAllowed)) {
+			$mimeAllowed = array($mimeAllowed);
+		}
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['InvalidMime']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (!empty($field['name']) && !empty($options['allowedMime']) && !in_array($field['type'], $options['allowedMime'])) {
+			if (!in_array($field['type'], $mimeAllowed)) {
 				return false;
 			}
 		}
