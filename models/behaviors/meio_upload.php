@@ -50,11 +50,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	var $_defaultValidations = array(
-		'UploadError' => array(
-			'rule' => array('uploadCheckUploadError'),
-			'check' => true,
-			'last' => true
-		),
 		'InvalidMime' => array(
 			'rule' => array('uploadCheckInvalidMime'),
 			'check' => true,
@@ -223,26 +218,6 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function afterDelete(&$model) {
 		$this->_removeListOfFiles();
-	}
-
-/**
- * Checks if ocurred erros in the upload.
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckUploadError(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['UploadError']['check']) {
-				continue;
-			}
-			if (!empty($field['name']) && $field['error'] > 0) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 /**
