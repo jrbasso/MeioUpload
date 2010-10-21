@@ -216,6 +216,9 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field), DS);
+			if ($options['dir'][0] !== DS && !preg_match('/^[a-z]:/i', $options['dir'])) { // Relative path
+				$options['dir'] = WWW_ROOT . $options['dir'];
+			}
 
 			// Replace tokens in the fields names
 			if ($options['useTable']) {
@@ -574,7 +577,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		foreach ($this->_config[$model->alias] as $fieldName => $options) {
 
 			//Create the appropriate directory and thumbnails directories.
-			$this->_createFolders($options['dir'],array_keys($options['thumbsizes']));
+			$this->_createFolders($options['dir'], array_keys($options['thumbsizes']));
 
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
 				if (!empty($data[$model->alias][$model->primaryKey])) {
@@ -592,25 +595,17 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 			list(, $ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
 
-			// Check whether or not the behavior is in useTable mode
-			if ($options['useTable'] === false) {
-				$pos = strrpos($data[$model->alias][$fieldName]['type'], '/');
-				$sub = substr($data[$model->alias][$fieldName]['type'], $pos + 1);
-				$this->_fixName($model, $fieldName, false);
-				$saveAs = $options['dir'] . DS . $sub;
-			} else {
-				// If no file has been upload, then unset the field to avoid overwriting existant file
-				if (!isset($data[$model->alias][$fieldName]) || !is_array($data[$model->alias][$fieldName]) || empty($data[$model->alias][$fieldName]['name'])) {
-					if (!empty($data[$model->alias][$model->primaryKey])) {
-						unset($data[$model->alias][$fieldName]);
-					} else {
-						$data[$model->alias][$fieldName] = null;
-					}
+			// If no file has been upload, then unset the field to avoid overwriting existant file
+			if (!isset($data[$model->alias][$fieldName]) || !is_array($data[$model->alias][$fieldName]) || empty($data[$model->alias][$fieldName]['name'])) {
+				if (!empty($data[$model->alias][$model->primaryKey])) {
+					unset($data[$model->alias][$fieldName]);
+				} else {
+					$data[$model->alias][$fieldName] = null;
 				}
-
-				$this->_fixName($model, $fieldName);
-				$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
 			}
+
+			$this->_fixName($model, $fieldName);
+			$saveAs = $options['dir'] . DS . $model->data[$model->alias][$fieldName]['name'];
 
 			// Attempt to move uploaded file
 			$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
@@ -841,9 +836,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	function _createFolders($dir, $thumbsizes) {
-		if ($dir[0] !== '/') {
-			$dir = WWW_ROOT . $dir;
-		}
 		$folder = new Folder();
 
 		if (!$folder->cd($dir)) {
@@ -928,7 +920,10 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _removeListOfFiles() {
 		foreach ($this->__filesToRemove as $info) {
-			$file =& new File(WWW_ROOT . DS . $info['dir'] . DS . $info['name']);
+			if ($info['dir'][0] !== DS && !preg_match('/^[a-z]:/i', $info['dir'])) { // Relative path
+				$info['dir'] = WWW_ROOT . $info['dir'];
+			}
+			$file =& new File($info['dir'] . DS . $info['name']);
 			$file->delete();
 		}
 	}
@@ -942,6 +937,9 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function changeDir(&$model, $field, $dir){
+		if ($dir[0] !== DS && !preg_match('/^[a-z]:/i', $dir)) { // Relative path
+			$dir = WWW_ROOT . $dir;
+		}
 		$this->_config[$model->alias][$field]['dir'] = rtrim($dir, DS);
 	}
 }

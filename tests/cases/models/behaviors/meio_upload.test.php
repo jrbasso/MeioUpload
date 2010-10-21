@@ -10,6 +10,7 @@
  */
 
 App::import('Behavior', 'MeioUpload.MeioUpload');
+define('MEIO_TESTS', dirname(dirname(dirname(dirname(__FILE__)))) . DS);
 
 /**
  * MeioUploadTestBehavior
@@ -64,14 +65,6 @@ class Meio extends CakeTestModel {
 	var $name = 'Meio';
 
 /**
- * useTable
- *
- * @var boolean
- * @access public
- */
-	var $useTable = false;
-
-/**
  * Behaviors
  *
  * @var array
@@ -116,6 +109,14 @@ class MeioUploadTestCase extends CakeTestCase {
 	var $TestModel = null;
 
 /**
+ * Fixtures
+ *
+ * @var array
+ * @access public
+ */
+	var $fixtures = array('plugin.meio_upload.meio');
+
+/**
  * start
  *
  * @return void
@@ -125,6 +126,8 @@ class MeioUploadTestCase extends CakeTestCase {
 		parent::start();
 		$this->TestModel = new Meio();
 		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUploadTest;
+		$file = new File(TMP . 'tests' . DS . 'meio');
+		$file->delete();
 	}
 
 /**
@@ -134,9 +137,9 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function end() {
-		$folder =& new Folder(WWW_ROOT . 'uploads' . DS . 'meio');
-		$folder->delete();
 		parent::end();
+		$file = new File(TMP . 'tests' . DS . 'meio');
+		$file->delete();
 	}
 
 /**
@@ -250,17 +253,17 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function testCreateFolders() {
-		if ($this->skipIf(is_dir(WWW_ROOT . 'test'), 'Directory "test" in webroot exists.')) {
+		if ($this->skipIf(is_dir(TMP . 'tests' . DS . 'test'), 'Directory "test" in app/tmp/tests exists.')) {
 			return;
 		}
-		$this->MeioUpload->createFolders('test', array('a', 'b', 'c'));
-		$this->assertTrue(is_dir(WWW_ROOT . 'test'));
-		$this->assertTrue(is_dir(WWW_ROOT . 'test' . DS . 'thumb' . DS . 'a'));
-		$this->assertTrue(is_dir(WWW_ROOT . 'test' . DS . 'thumb' . DS . 'b'));
-		$this->assertTrue(is_dir(WWW_ROOT . 'test' . DS . 'thumb' . DS . 'c'));
-		$this->assertFalse(is_dir(WWW_ROOT . 'test' . DS . 'thumb' . DS . 'd'));
+		$this->MeioUpload->createFolders(TMP . 'tests' . DS . 'test', array('a', 'b', 'c'));
+		$this->assertTrue(is_dir(TMP . 'tests' . DS . 'test'));
+		$this->assertTrue(is_dir(TMP . 'tests' . DS . 'test' . DS . 'thumb' . DS . 'a'));
+		$this->assertTrue(is_dir(TMP . 'tests' . DS . 'test' . DS . 'thumb' . DS . 'b'));
+		$this->assertTrue(is_dir(TMP . 'tests' . DS . 'test' . DS . 'thumb' . DS . 'c'));
+		$this->assertFalse(is_dir(TMP . 'tests' . DS . 'test' . DS . 'thumb' . DS . 'd'));
 		$folder = new Folder();
-		$folder->cd(WWW_ROOT . 'test');
+		$folder->cd(TMP . 'tests' . DS . 'test');
 		$folder->delete();
 	}
 
@@ -275,6 +278,39 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual($model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir') . DS, TMP);
 		$model->Behaviors->MeioUploadTest->changeDir($model, 'filename', CACHE);
 		$this->assertEqual($model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir') . DS, CACHE);
+	}
+
+/**
+ * testUploadDir
+ *
+ * @return void
+ * @access public
+ */
+	function testUploadDir() {
+		$model = new Meio();
+		$result = $model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir');
+		$this->assertEqual(WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename', $result);
+
+		$model = new Meio(array('dir' => 'testing'));
+		$result = $model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir');
+		$this->assertEqual(WWW_ROOT . 'testing', $result);
+
+		$model = new Meio(array('dir' => TMP . 'tests' . DS . 'meio'));
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_OK,
+					'size' => 95
+				)
+			)
+		);
+		$model->create();
+		$this->assertTrue($model->save($data));
+		$this->assertTrue(file_exists(TMP . 'tests' . DS . 'meio' . DS . 'test.png'));
+		@unlink(TMP . 'tests' . DS . 'meio' . DS . 'test.png');
 	}
 
 }
