@@ -255,51 +255,55 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the min width is allowed
+ * Validator: Checks if the min width is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckMinWidth(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'minWidth');
+	function uploadMinWidth(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'minWidth');
 	}
 
 /**
- * Checks if the max width is allowed
+ * Validator: Checks if the max width is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckMaxWidth(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'maxWidth');
+	function uploadMaxWidth(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'maxWidth');
 	}
 
 /**
- * Checks if the min height is allowed
+ * Validator: Checks if the min height is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckMinHeight(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'minHeight');
+	function uploadMinHeight(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'minHeight');
 	}
 
 /**
- * Checks if the max height is allowed
+ * Validator: Checks if the max height is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckMaxHeight(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'maxHeight');
+	function uploadMaxHeight(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'maxHeight');
 	}
 
 /**
@@ -311,20 +315,19 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean
  * @access protected
  */
-	function _uploadCheckSize(&$model, &$data, $type) {
+	function _uploadCheckSize(&$model, &$data, $size, $type) {
+		if (!is_int($size) && !is_numeric($size)) {
+			return false;
+		}
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName][ucfirst($type)]['check'] || empty($field['tmp_name'])) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
 			list($imgWidth, $imgHeight) = getimagesize($field['tmp_name']);
 			$imgType = 'img' . substr($type, 3);
 			if (substr($type, 0, 3) === 'min') {
-				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType < $options['length'][$type]) {
+				if ($$imgType < $size) {
 					return false;
 				}
 			} else {
-				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType > $options['length'][$type]) {
+				if ($$imgType > $size) {
 					return false;
 				}
 			}
