@@ -123,7 +123,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @var array
  * @access private
  */
-	var $__fields = array();
+	var $_config = array();
 
 /**
  * Array of files to be removed on the afterSave callback
@@ -186,7 +186,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function setup(&$model, $settings = array()) {
-		$this->__fields[$model->alias] = array();
+		$this->_config[$model->alias] = array();
 		foreach ($settings as $field => $options) {
 			if (!is_array($options)) {
 				$field = $options;
@@ -223,7 +223,7 @@ class MeioUploadBehavior extends ModelBehavior {
 					$options['fields'][$fieldToken] = $this->_replaceTokens($model, $fieldName, $field);
 				}
 			}
-			$this->__fields[$model->alias][$field] = $options;
+			$this->_config[$model->alias][$field] = $options;
 		}
 	}
 
@@ -237,7 +237,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function beforeValidate(&$model) {
 		static $setup = false;
 		if ($setup === false) {
-			foreach ($this->__fields[$model->alias] as $fieldName => $options) {
+			foreach ($this->_config[$model->alias] as $fieldName => $options) {
 				$this->_setupValidation($model, $fieldName, $options);
 			}
 			$setup = true;
@@ -289,7 +289,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function beforeDelete(&$model) {
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
-			foreach ($this->__fields[$model->alias] as $field => $options) {
+			foreach ($this->_config[$model->alias] as $field => $options) {
 				$this->_setFileToRemove($model, $field);
 			}
 		}
@@ -322,7 +322,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!$model->validate[$fieldName]['FieldName']['check']) {
 				continue;
 			}
-			if (isset($this->__fields[$model->alias][$fieldName])) {
+			if (isset($this->_config[$model->alias][$fieldName])) {
 				continue;
 			} else {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias), E_USER_WARNING);
@@ -345,7 +345,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!$model->validate[$fieldName]['Dir']['check']) {
 				continue;
 			}
-			$options = $this->__fields[$model->alias][$fieldName];
+			$options = $this->_config[$model->alias][$fieldName];
 			if (empty($field['remove']) || empty($field['name'])) {
 				// Check if directory exists and create it if required
 				if (!is_dir($options['dir'])) {
@@ -421,7 +421,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!$model->validate[$fieldName]['MaxSize']['check']) {
 				continue;
 			}
-			$options = $this->__fields[$model->alias][$fieldName];
+			$options = $this->_config[$model->alias][$fieldName];
 			if (!empty($field['name']) && $field['size'] > $options['maxSize']) {
 				return false;
 			}
@@ -442,7 +442,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!$model->validate[$fieldName]['InvalidMime']['check']) {
 				continue;
 			}
-			$options = $this->__fields[$model->alias][$fieldName];
+			$options = $this->_config[$model->alias][$fieldName];
 			if (!empty($field['name']) && !empty($options['allowedMime']) && !in_array($field['type'], $options['allowedMime'])) {
 				return false;
 			}
@@ -463,7 +463,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!$model->validate[$fieldName]['InvalidExt']['check']) {
 				continue;
 			}
-			$options = $this->__fields[$model->alias][$fieldName];
+			$options = $this->_config[$model->alias][$fieldName];
 			if (!empty($field['name'])) {
 				if (!empty($options['allowedExt'])) {
 					$matches = 0;
@@ -545,7 +545,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!$model->validate[$fieldName][ucfirst($type)]['check'] || empty($field['tmp_name'])) {
 				continue;
 			}
-			$options = $this->__fields[$model->alias][$fieldName];
+			$options = $this->_config[$model->alias][$fieldName];
 			list($imgWidth, $imgHeight) = getimagesize($field['tmp_name']);
 			$imgType = 'img' . substr($type, 3);
 			if (substr($type, 0, 3) === 'min') {
@@ -571,7 +571,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _uploadFile(&$model) {
 		$data =& $model->data;
 		$return = array();
-		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
+		foreach ($this->_config[$model->alias] as $fieldName => $options) {
 
 			//Create the appropriate directory and thumbnails directories.
 			$this->_createFolders($options['dir'],array_keys($options['thumbsizes']));
@@ -677,7 +677,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _createThumbnail(&$model, $source, $target, $fieldName, $params = array()) {
 		$params = array_merge(
 			array(
-				'thumbnailQuality' => $this->__fields[$model->alias][$fieldName]['thumbnailQuality'],
+				'thumbnailQuality' => $this->_config[$model->alias][$fieldName]['thumbnailQuality'],
 				'zoomCrop' => false
 			),
 			$params);
@@ -707,8 +707,8 @@ class MeioUploadBehavior extends ModelBehavior {
 		$phpThumb->q = $params['thumbnailQuality'];
 
 		list(, $phpThumb->config_output_format) = explode('.', $source, 2);
-		$phpThumb->config_prefer_imagemagick = $this->__fields[$model->alias][$fieldName]['useImageMagick'];
-		$phpThumb->config_imagemagick_path = $this->__fields[$model->alias][$fieldName]['imageMagickPath'];
+		$phpThumb->config_prefer_imagemagick = $this->_config[$model->alias][$fieldName]['useImageMagick'];
+		$phpThumb->config_imagemagick_path = $this->_config[$model->alias][$fieldName]['imageMagickPath'];
 
 		// Setting whether to die upon error
 		$phpThumb->config_error_die_on_error = true;
@@ -749,7 +749,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _fixName(&$model, $fieldName, $checkFile = true) {
 		// updates the filename removing the keywords thumb and default name for the field.
-		if ($this->__fields[$model->alias][$fieldName]['fixFilename'] !== true) {
+		if ($this->_config[$model->alias][$fieldName]['fixFilename'] !== true) {
 			return;
 		}
 		list ($filename, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
@@ -757,7 +757,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$i = 0;
 		$newFilename = $filename;
 		if ($checkFile) {
-			while (file_exists($this->__fields[$model->alias][$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
+			while (file_exists($this->_config[$model->alias][$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
 				$newFilename = $filename . '-' . $i++;
 			}
 		}
@@ -817,7 +817,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	function _setupValidation(&$model, $fieldName, $options) {
-		$options = $this->__fields[$model->alias][$fieldName];
+		$options = $this->_config[$model->alias][$fieldName];
 
 		if (isset($model->validate[$fieldName])) {
 			if (isset($model->validate[$fieldName]['rule'])) {
@@ -890,13 +890,13 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (!empty($filename)) {
 			$this->__filesToRemove[] = array(
 				'field' => $fieldName,
-				'dir' => $this->__fields[$model->alias][$fieldName]['dir'],
+				'dir' => $this->_config[$model->alias][$fieldName]['dir'],
 				'name' => $filename
 			);
-			foreach($this->__fields[$model->alias][$fieldName]['thumbsizes'] as $key => $sizes){
+			foreach($this->_config[$model->alias][$fieldName]['thumbsizes'] as $key => $sizes){
 				$this->__filesToRemove[] = array(
 					'field' => $fieldName,
-					'dir' => $this->__fields[$model->alias][$fieldName]['dir'] . DS . 'thumb' . DS . $key,
+					'dir' => $this->_config[$model->alias][$fieldName]['dir'] . DS . 'thumb' . DS . $key,
 					'name' => $filename
 				);
 			}
@@ -914,7 +914,7 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _cleanFields(&$model, $fieldName) {
 		$model->data[$model->alias][$fieldName] = '';
 
-		$options = $this->__fields[$model->alias][$fieldName];
+		$options = $this->_config[$model->alias][$fieldName];
 		$model->data[$model->alias][$options['fields']['dir']] = '';
 		$model->data[$model->alias][$options['fields']['filesize']] = '';
 		$model->data[$model->alias][$options['fields']['mimetype']] = '';
@@ -942,6 +942,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function changeDir(&$model, $field, $dir){
-		$this->__fields[$model->alias][$field]['dir'] = $dir;
+		$this->_config[$model->alias][$field]['dir'] = $dir;
 	}
 }
