@@ -22,8 +22,8 @@ class MeioUploadTestBehavior extends MeioUploadBehavior {
 		return $this->_replaceTokens($model, $string, $fieldName);
 	}
 
-	function fixName(&$model, $fieldName, $checkFile = true) {
-		return $this->_fixName($model, $fieldName, $checkFile);
+	function adjustName(&$model, $fieldName, $checkFile = true) {
+		return $this->_adjustName($model, $fieldName, $checkFile);
 	}
 
 	function splitFilenameAndExt($filename) {
@@ -47,6 +47,10 @@ class MeioUploadTestBehavior extends MeioUploadBehavior {
 
 	function readConfig($path) {
 		return Set::extract($path, $this->_config);
+	}
+
+	function setConfig($path, $value) {
+		$this->_config = Set::insert($this->_config, $path, $value);
 	}
 
 }
@@ -124,7 +128,7 @@ class MeioUploadTestCase extends CakeTestCase {
  */
 	function start() {
 		parent::start();
-		$this->TestModel = new Meio();
+		$this->TestModel = new Meio(array('dir' => TMP . 'tests' . DS . 'meio'));
 		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUploadTest;
 		$file = new File(TMP . 'tests' . DS . 'meio');
 		$file->delete();
@@ -160,12 +164,12 @@ class MeioUploadTestCase extends CakeTestCase {
 	}
 
 /**
- * testFixName
+ * testAdjustName
  *
  * @return void
  * @access public
  */
-	function testFixName() {
+	function testAdjustName() {
 		$this->TestModel->data = array(
 			$this->TestModel->alias => array(
 				'filename' => array(
@@ -175,25 +179,31 @@ class MeioUploadTestCase extends CakeTestCase {
 			)
 		);
 
-		$this->MeioUpload->fixName($this->TestModel, 'filename', false);
+		$this->MeioUpload->adjustName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'xxx.jpg');
 
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default.jpg';
-		$this->MeioUpload->fixName($this->TestModel, 'filename', false);
+		$this->MeioUpload->adjustName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default.jpg');
 
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default_1.hello.jpg';
-		$this->MeioUpload->fixName($this->TestModel, 'filename', false);
+		$this->MeioUpload->adjustName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default_1_hello.jpg');
 
-		$file = WWW_ROOT . 'uploads' . DS . 'meio' . DS . 'filename' . DS . 'default.jpg';
+		$file = TMP . 'tests' . DS . 'meio' . DS . 'default.jpg';
 		if ($this->skipIf(!@touch($file), 'Fail to create file.')) {
 			return;
 		}
 		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default.jpg';
-		$this->MeioUpload->fixName($this->TestModel, 'filename', true);
+		$this->MeioUpload->adjustName($this->TestModel, 'filename', true);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default-0.jpg');
 		unlink($file);
+
+		$this->MeioUpload->setConfig('Meio.filename.adjustFilename', 'random');
+		$this->TestModel->data[$this->TestModel->alias]['filename']['name'] = 'default.jpg';
+		$this->MeioUpload->adjustName($this->TestModel, 'filename', true);
+		$this->assertNotEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default.jpg');
+		$this->assertPattern('/^meio_[a-zA-Z0-9.]+\.jpg$/', $this->TestModel->data[$this->TestModel->alias]['filename']['name']);		
 	}
 
 /**

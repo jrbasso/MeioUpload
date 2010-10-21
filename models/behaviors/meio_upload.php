@@ -19,7 +19,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	var $_defaultOptions = array(
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
-		'fixFilename' => true,
+		'adjustFilename' => 'fix', // ajust the filename. Can be 'fix', false/'none' or 'random'
 		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
@@ -603,7 +603,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 			}
 
-			$this->_fixName($model, $fieldName);
+			$this->_adjustName($model, $fieldName);
 			$saveAs = $options['dir'] . DS . $model->data[$model->alias][$fieldName]['name'];
 
 			// Attempt to move uploaded file
@@ -741,21 +741,26 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access protected
  */
-	function _fixName(&$model, $fieldName, $checkFile = true) {
+	function _adjustName(&$model, $fieldName, $checkFile = true) {
 		// updates the filename removing the keywords thumb and default name for the field.
-		if ($this->_config[$model->alias][$fieldName]['fixFilename'] !== true) {
-			return;
+		switch ($this->_config[$model->alias][$fieldName]['adjustFilename']) {
+			case 'fix':
+				list ($filename, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
+				$filename = Inflector::slug($filename);
+				$i = 0;
+				$newFilename = $filename;
+				if ($checkFile) {
+					while (file_exists($this->_config[$model->alias][$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
+						$newFilename = $filename . '-' . $i++;
+					}
+				}
+				$model->data[$model->alias][$fieldName]['name'] = $newFilename . '.' . $ext;
+				break;
+			case 'random':
+				list (, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
+				$model->data[$model->alias][$fieldName]['name'] = uniqid('meio_', true) . '.' . $ext;
+				break;
 		}
-		list ($filename, $ext) = $this->_splitFilenameAndExt($model->data[$model->alias][$fieldName]['name']);
-		$filename = Inflector::slug($filename);
-		$i = 0;
-		$newFilename = $filename;
-		if ($checkFile) {
-			while (file_exists($this->_config[$model->alias][$fieldName]['dir'] . DS . $newFilename . '.' . $ext)) {
-				$newFilename = $filename . '-' . $i++;
-			}
-		}
-		$model->data[$model->alias][$fieldName]['name'] = $newFilename . '.' . $ext;
 	}
 
 /**
