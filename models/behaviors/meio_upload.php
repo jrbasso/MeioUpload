@@ -75,14 +75,11 @@ class MeioUploadBehavior extends ModelBehavior {
 				$options = array();
 			}
 
-			// Auto set useTable
-			$options['useTable'] = $model->useTable;
-
 			// Merge given options with defaults
 			$options = Set::merge($this->_defaultOptions, $options);
 
 			// Check if given field exists
-			if ($options['useTable'] && !$model->hasField($field)) {
+			if ($model->useTable && !$model->hasField($field)) {
 				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->alias), E_USER_WARNING);
 			}
 
