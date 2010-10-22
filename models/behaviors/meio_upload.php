@@ -173,6 +173,21 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
+ * Change the destination directory at runtime
+ *
+ * @return void
+ * @param string $field Name of the upload field, eg filename
+ * @param string $dir The new destination directory
+ * @access public
+ */
+	function changeDir(&$model, $field, $dir){
+		if ($dir[0] !== DS && !preg_match('/^[a-z]:/i', $dir)) { // Relative path
+			$dir = WWW_ROOT . $dir;
+		}
+		$this->_config[$model->alias][$field]['dir'] = rtrim($dir, DS);
+	}
+
+/**
  * Validator: Checks if the file isn't bigger then the max file size option.
  *
  * @param object $model
@@ -673,18 +688,4 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 	}
 
-/**
- * Change the destination directory at runtime
- *
- * @return void
- * @param string $field Name of the upload field, eg filename
- * @param string $dir The new destination directory
- * @access public
- */
-	function changeDir(&$model, $field, $dir){
-		if ($dir[0] !== DS && !preg_match('/^[a-z]:/i', $dir)) { // Relative path
-			$dir = WWW_ROOT . $dir;
-		}
-		$this->_config[$model->alias][$field]['dir'] = rtrim($dir, DS);
-	}
 }
