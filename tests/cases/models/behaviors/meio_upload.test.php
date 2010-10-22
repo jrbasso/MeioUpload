@@ -38,6 +38,10 @@ class MeioUploadTestBehavior extends MeioUploadBehavior {
 		return $this->_createFolders($dir, $thumbsizes);
 	}
 
+	function normalizePath($dir) {
+		return $this->_normalizePath($dir);
+	}
+
 	function _copyFileFromTemp($tmpName, $saveAs) {
 		if (!copy($tmpName, $saveAs)) {
 			return __d('meio_upload', 'Problems in the copy of the file.', true);
@@ -275,6 +279,19 @@ class MeioUploadTestCase extends CakeTestCase {
 		$folder = new Folder();
 		$folder->cd(TMP . 'tests' . DS . 'test');
 		$folder->delete();
+	}
+
+/**
+ * testNormalizePath
+ *
+ * @return void
+ * @access public
+ */
+	function testNormalizePath() {
+		$this->assertEqual('/path/file.png', $this->MeioUpload->normalizePath('/path/file.png'));
+		$this->assertEqual('C:\\path\\file.png', $this->MeioUpload->normalizePath('C:\\path\\file.png'));
+		$this->assertEqual('C:/path/file.png', $this->MeioUpload->normalizePath('C:/path/file.png'));
+		$this->assertEqual(WWW_ROOT . 'file.png', $this->MeioUpload->normalizePath('file.png'));
 	}
 
 /**

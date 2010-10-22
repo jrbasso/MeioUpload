@@ -95,9 +95,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field), DS);
-			if ($options['dir'][0] !== DS && !preg_match('/^[a-z]:/i', $options['dir'])) { // Relative path
-				$options['dir'] = WWW_ROOT . $options['dir'];
-			}
+			$options['dir'] = $this->_normalizePath($options['dir']);
 
 			// Replace tokens in the fields names
 			foreach ($options['fields'] as $fieldToken => $fieldName) {
@@ -181,9 +179,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function changeDir(&$model, $field, $dir){
-		if ($dir[0] !== DS && !preg_match('/^[a-z]:/i', $dir)) { // Relative path
-			$dir = WWW_ROOT . $dir;
-		}
+		$dir = $this->_normalizePath($dir);
 		$this->_config[$model->alias][$field]['dir'] = rtrim($dir, DS);
 	}
 
@@ -680,12 +676,24 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _removeListOfFiles() {
 		foreach ($this->__filesToRemove as $info) {
-			if ($info['dir'][0] !== DS && !preg_match('/^[a-z]:/i', $info['dir'])) { // Relative path
-				$info['dir'] = WWW_ROOT . $info['dir'];
-			}
+			$info['dir'] = $this->_normalizePath($info['dir']);
 			$file =& new File($info['dir'] . DS . $info['name']);
 			$file->delete();
 		}
+	}
+
+/**
+ * Transform in realpath
+ *
+ * @param string $dir
+ * @return string
+ * @access protected
+ */
+	function _normalizePath($dir) {
+		if ($dir[0] !== '/' && $dir[0] !== '\\' && !preg_match('/^[a-z]:/i', $dir)) { // Relative path
+			$dir = WWW_ROOT . $dir;
+		}
+		return $dir;
 	}
 
 }
