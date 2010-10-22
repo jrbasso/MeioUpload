@@ -31,12 +31,6 @@ class MeioUploadBehavior extends ModelBehavior {
 			'dir' => 'dir',
 			'filesize' => 'filesize',
 			'mimetype' => 'mimetype'
-		),
-		'length' => array(
-			'minWidth' => 0, // 0 for not validates
-			'maxWidth' => 0,
-			'minHeight' => 0,
-			'maxHeight' => 0
 		)
 	);
 
