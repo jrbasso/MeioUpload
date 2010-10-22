@@ -323,4 +323,40 @@ class MeioUploadTestCase extends CakeTestCase {
 		@unlink(TMP . 'tests' . DS . 'meio' . DS . 'test.png');
 	}
 
+/**
+ * testUploadMaxSize
+ *
+ * @return void
+ * @access public
+ */
+	function testUploadMaxSize() {
+		$model = new Meio(array('dir' => TMP . 'tests' . DS . 'meio'));
+		$model->validate = array(
+			'filename' => array('rule' => 'uploadMaxSize')
+		);
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_OK,
+					'size' => 95
+				)
+			)
+		);
+		$model->create();
+		$this->assertTrue($model->save($data));
+		$this->assertTrue(file_exists(TMP . 'tests' . DS . 'meio' . DS . 'test.png'));
+		@unlink(TMP . 'tests' . DS . 'meio' . DS . 'test.png');
+
+		$data['Meio']['filename']['size'] = 3145728; // 3MB
+		$model->create();
+		$this->assertFalse($model->save($data));
+
+		$model->validate['filename']['rule'] = array('uploadMaxSize', '3MB');
+		$model->create();
+		$this->assertTrue($model->save($data));
+	}
+
 }

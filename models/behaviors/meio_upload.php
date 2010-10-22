@@ -20,9 +20,6 @@ class MeioUploadBehavior extends ModelBehavior {
 	var $_defaultOptions = array(
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'adjustFilename' => 'fix', // ajust the filename. Can be 'fix', false/'none' or 'random'
-		'maxSize' => 2097152, // 2MB
-		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
-		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
 		'zoomCrop' => false, // Whether to use ZoomCrop or not with PHPThumb
 		'thumbsizes' => array(
 			// Place any custom thumbsize in model config instead,
@@ -34,79 +31,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			'dir' => 'dir',
 			'filesize' => 'filesize',
 			'mimetype' => 'mimetype'
-		),
-		'length' => array(
-			'minWidth' => 0, // 0 for not validates
-			'maxWidth' => 0,
-			'minHeight' => 0,
-			'maxHeight' => 0
-		),
-		'validations' => array()
-	);
-
-/**
- * Default validations
- *
- * @var array
- * @access protected
- */
-	var $_defaultValidations = array(
-		'FieldName' => array(
-			'rule' => array('uploadCheckFieldName'),
-			'check' => true,
-			'last' => true
-		),
-		'Dir' => array(
-			'rule' => array('uploadCheckDir'),
-			'check' => true,
-			'last' => true
-		),
-		'Empty' => array(
-			'rule' => array('uploadCheckEmpty'),
-			'check' => true,
-			'on' => 'create',
-			'last' => true
-		),
-		'UploadError' => array(
-			'rule' => array('uploadCheckUploadError'),
-			'check' => true,
-			'last' => true
-		),
-		'MaxSize' => array(
-			'rule' => array('uploadCheckMaxSize'),
-			'check' => true,
-			'last' => true
-		),
-		'InvalidMime' => array(
-			'rule' => array('uploadCheckInvalidMime'),
-			'check' => true,
-			'last' => true
-		),
-		'InvalidExt' => array(
-			'rule' => array('uploadCheckInvalidExt'),
-			'check' => true,
-			'last' => true
-		),
-		'MinWidth' => array(
-			'rule' => array('uploadCheckMinWidth'),
-			'check' => true,
-			'last' => true
-		),
-		'MaxWidth' => array(
-			'rule' => array('uploadCheckMaxWidth'),
-			'check' => true,
-			'last' => true
-		),
-		'MinHeight' => array(
-			'rule' => array('uploadCheckMinHeight'),
-			'check' => true,
-			'last' => true
-		),
-		'MaxHeight' => array(
-			'rule' => array('uploadCheckMaxHeight'),
-			'check' => true,
-			'last' => true
-		),
+		)
 	);
 
 /**
@@ -132,49 +57,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access private
  */
 	var $__filesToRemove = array();
-
-/**
- * Constructor
- *
- */
-	function __construct() {
-		$messages = array(
-			'FieldName' => array(
-				'message' => __d('meio_upload', 'This field has not been defined between the parameters of MeioUploadBehavior.', true)
-			),
-			'Dir' => array(
-				'message' => __d('meio_upload', 'The directory where the file would be placed there or is protected against writing.', true)
-			),
-			'Empty' => array(
-				'message' => __d('meio_upload', 'The file can not be empty.', true)
-			),
-			'UploadError' => array(
-				'message' => __d('meio_upload', 'There were problems in uploading the file.', true)
-			),
-			'MaxSize' => array(
-				'message' => __d('meio_upload', 'The maximum file size is exceeded.', true)
-			),
-			'InvalidMime' => array(
-				'message' => __d('meio_upload', 'Invalid file type.', true)
-			),
-			'InvalidExt' => array(
-				'message' => __d('meio_upload', 'Invalid file extension.', true)
-			),
-			'MinWidth' => array(
-				'message' => __d('meio_upload', 'Image width is smaller than minimum allowed.', true)
-			),
-			'MinHeight' => array(
-				'message' => __d('meio_upload', 'Image height is smaller than minimum allowed.', true)
-			),
-			'MaxWidth' => array(
-				'message' => __d('meio_upload', 'Image width is larger than maximum allowed.', true)
-			),
-			'MaxHeight' => array(
-				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.', true)
-			)
-		);
-		$this->_defaultOptions['validations'] = Set::merge($this->_defaultValidations, $messages);
-	}
 
 /**
  * Setup the behavior.
@@ -211,9 +93,6 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 			}
 
-			// Process the max_size if it is not numeric
-			$options['maxSize'] = $this->_sizeToBytes($options['maxSize']);
-
 			// Replace tokens of the dir and field, check it doesn't have a DS on the end
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field), DS);
 			if ($options['dir'][0] !== DS && !preg_match('/^[a-z]:/i', $options['dir'])) { // Relative path
@@ -227,24 +106,6 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			$this->_config[$model->alias][$field] = $options;
 		}
-	}
-
-/**
- * Sets the validation rules for each field.
- *
- * @param object $model
- * @return boolean Always true
- * @access public
- */
-	function beforeValidate(&$model) {
-		static $setup = false;
-		if ($setup === false) {
-			foreach ($this->_config[$model->alias] as $fieldName => $options) {
-				$this->_setupValidation($model, $fieldName, $options);
-			}
-			$setup = true;
-		}
-		return true;
 	}
 
 /**
@@ -312,22 +173,25 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the field was declared in the MeioUpload Behavior setup
+ * Validator: Checks if the file isn't bigger then the max file size option.
  *
  * @param object $model
  * @param array $data
+ * @param mixed $maxSize
+ * @param mixed $extra
  * @return boolean
  * @access public
  */
-	function uploadCheckFieldName(&$model, $data) {
+	function uploadMaxSize(&$model, $data, $maxSize = 2097152, $extra = null) {
+		if (!$extra) {
+			$maxSize = 2097152;
+		}
+		$maxSize = $this->_sizeToBytes($maxSize);
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['FieldName']['check']) {
+			if (!isset($field['size'])) {
 				continue;
 			}
-			if (isset($this->_config[$model->alias][$fieldName])) {
-				continue;
-			} else {
-				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias), E_USER_WARNING);
+			if ($field['size'] > $maxSize) {
 				return false;
 			}
 		}
@@ -335,75 +199,24 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the folder exists or can be created or writable.
+ * Validator: Checks if the file is of an allowed mime-type.
  *
  * @param object $model
  * @param array $data
+ * @param mixed $mimeAllowed
+ * @param mixed $extra
  * @return boolean
  * @access public
  */
-	function uploadCheckDir(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['Dir']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (empty($field['remove']) || empty($field['name'])) {
-				// Check if directory exists and create it if required
-				if (!is_dir($options['dir'])) {
-					$folder = &new Folder();
-					if (!$folder->create($options['dir'])) {
-						trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', true), $options['dir']), E_USER_WARNING);
-						return false;
-					}
-				}
-
-				// Check if directory is writable
-				if (!is_writable($options['dir'])) {
-					trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s isn\'t writable.', true), $options['dir']), E_USER_WARNING);
-					return false;
-				}
-			}
+	function uploadMimeType(&$model, $data, $mimeAllowed, $extra = null) {
+		if (!$extra) {
+			$mimeAllowed = array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon');
 		}
-		return true;
-	}
-
-/**
- * Checks if the filename is not empty.
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckEmpty(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['Empty']['check']) {
-				continue;
-			}
-			if (empty($field['remove'])) {
-				if (empty($field['name'])) {
-					return false;
-				}
-			}
+		if (!is_array($mimeAllowed)) {
+			$mimeAllowed = array($mimeAllowed);
 		}
-		return true;
-	}
-
-/**
- * Checks if ocurred erros in the upload.
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckUploadError(&$model, $data) {
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['UploadError']['check']) {
-				continue;
-			}
-			if (!empty($field['name']) && $field['error'] > 0) {
+			if (!in_array($field['type'], $mimeAllowed)) {
 				return false;
 			}
 		}
@@ -411,20 +224,24 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the file isn't bigger then the max file size option.
+ * Validator: Checks if the file has an allowed extension.
  *
  * @param object $model
  * @param array $data
+ * @param mixed $extAllowed
+ * @param mixed $extra
  * @return boolean
  * @access public
  */
-	function uploadCheckMaxSize(&$model, $data) {
+	function uploadExtension(&$model, $data, $extAllowed, $extra = null) {
+		if (!$extra) {
+			$extAllowed = array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico');
+		}
+		if (!is_array($extAllowed)) {
+			$extAllowed = array($extAllowed);
+		}
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['MaxSize']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (!empty($field['name']) && $field['size'] > $options['maxSize']) {
+			if (!in_array(pathinfo($field['name'], PATHINFO_EXTENSION), $extAllowed)) {
 				return false;
 			}
 		}
@@ -432,105 +249,55 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
- * Checks if the file is of an allowed mime-type.
+ * Validator: Checks if the min width is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckInvalidMime(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['InvalidMime']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (!empty($field['name']) && !empty($options['allowedMime']) && !in_array($field['type'], $options['allowedMime'])) {
-				return false;
-			}
-		}
-		return true;
+	function uploadMinWidth(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'minWidth');
 	}
 
 /**
- * Checks if the file has an allowed extension.
+ * Validator: Checks if the max width is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckInvalidExt(&$model, $data) {
-		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName]['InvalidExt']['check']) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
-			if (!empty($field['name'])) {
-				if (!empty($options['allowedExt'])) {
-					$matches = 0;
-					foreach ($options['allowedExt'] as $extension) {
-						if (strtolower(substr($field['name'], -strlen($extension))) === strtolower($extension)) {
-							$matches = 1;
-							break;
-						}
-					}
-
-					if ($matches === 0) {
-						return false;
-					}
-				}
-			}
-		}
-		return true;
+	function uploadMaxWidth(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'maxWidth');
 	}
 
 /**
- * Checks if the min width is allowed
+ * Validator: Checks if the min height is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckMinWidth(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'minWidth');
+	function uploadMinHeight(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'minHeight');
 	}
 
 /**
- * Checks if the max width is allowed
+ * Validator: Checks if the max height is allowed
  *
  * @param object $model
  * @param array $data
+ * @param mixed $size
  * @return boolean
  * @access public
  */
-	function uploadCheckMaxWidth(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'maxWidth');
-	}
-
-/**
- * Checks if the min height is allowed
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckMinHeight(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'minHeight');
-	}
-
-/**
- * Checks if the max height is allowed
- *
- * @param object $model
- * @param array $data
- * @return boolean
- * @access public
- */
-	function uploadCheckMaxHeight(&$model, $data) {
-		return $this->_uploadCheckSize($model, $data, 'maxHeight');
+	function uploadMaxHeight(&$model, $data, $size) {
+		return $this->_uploadCheckSize($model, $data, $size, 'maxHeight');
 	}
 
 /**
@@ -542,20 +309,19 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean
  * @access protected
  */
-	function _uploadCheckSize(&$model, &$data, $type) {
+	function _uploadCheckSize(&$model, &$data, $size, $type) {
+		if (!is_int($size) && !is_numeric($size)) {
+			return false;
+		}
 		foreach ($data as $fieldName => $field) {
-			if (!$model->validate[$fieldName][ucfirst($type)]['check'] || empty($field['tmp_name'])) {
-				continue;
-			}
-			$options = $this->_config[$model->alias][$fieldName];
 			list($imgWidth, $imgHeight) = getimagesize($field['tmp_name']);
 			$imgType = 'img' . substr($type, 3);
 			if (substr($type, 0, 3) === 'min') {
-				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType < $options['length'][$type]) {
+				if ($$imgType < $size) {
 					return false;
 				}
 			} else {
-				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType > $options['length'][$type]) {
+				if ($$imgType > $size) {
 					return false;
 				}
 			}
@@ -805,31 +571,6 @@ class MeioUploadBehavior extends ModelBehavior {
 		}
 		return 2097152;
 	}
-
-/**
- * Sets the validation for each field, based on the options.
- *
- * @param object $model
- * @param string $fieldName
- * @param array $options
- * @return void
- * @access protected
- */
-	function _setupValidation(&$model, $fieldName, $options) {
-		$options = $this->_config[$model->alias][$fieldName];
-
-		if (isset($model->validate[$fieldName])) {
-			if (isset($model->validate[$fieldName]['rule'])) {
-				$model->validate[$fieldName] = array(
-					'oldValidation' => $model->validates[$fieldName]
-				);
-			}
-		} else {
-			$model->validate[$fieldName] = array();
-		}
-		$model->validate[$fieldName] = Set::merge($this->_defaultValidations, $options['validations'], $model->validate[$fieldName]);
-	}
-
 
 /**
  * Creates thumbnail folders if they do not already exist
