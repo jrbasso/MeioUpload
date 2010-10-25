@@ -660,10 +660,16 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _cleanFields(&$model, $fieldName) {
 		$model->data[$model->alias][$fieldName] = '';
 
-		$options = $this->_config[$model->alias][$fieldName];
-		$model->data[$model->alias][$options['fields']['dir']] = '';
-		$model->data[$model->alias][$options['fields']['filesize']] = '';
-		$model->data[$model->alias][$options['fields']['mimetype']] = '';
+		$options = $this->_config[$model->alias][$fieldName]['fields'];
+		if (!empty($options['dir'])) {
+			$model->data[$model->alias][$options['dir']] = '';
+		}
+		if (!empty($options['filesize'])) {
+			$model->data[$model->alias][$options['filesize']] = '';
+		}
+		if (!empty($options['mimetype'])) {
+			$model->data[$model->alias][$options['mimetype']] = '';
+		}
 	}
 
 /**
