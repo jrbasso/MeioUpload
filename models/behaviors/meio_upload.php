@@ -706,6 +706,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		if (!is_readable($file)) {
 			return $mimeType;
 		}
+		if ($mimeType !== 'application/octet-stream') {
+			return $mimeType;
+		}
 		if (function_exists('finfo_file')) {
 			$finfo = finfo_open(FILEINFO_MIME_TYPE);
 			$mime = finfo_file($finfo, $file);
