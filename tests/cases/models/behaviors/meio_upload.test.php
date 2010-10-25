@@ -393,4 +393,46 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertTrue($model->save($data));
 	}
 
+/**
+ * testUploadMimeType
+ *
+ * @return void
+ * @access public
+ */
+	function testUploadMimeType() {
+		$model = new Meio(array('dir' => MEIO_TMP));
+		$model->validate = array(
+			'filename' => array('rule' => 'uploadMimeType')
+		);
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_OK,
+					'size' => 95
+				)
+			)
+		);
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['type'] = 'application/octet-stream';
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['type'] = 'text/plain';
+		$model->create($data);
+		$this->assertFalse($model->validates($data));
+
+		$model->validate['filename']['rule'] = array('uploadMimeType', array('text/plain'));
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['type'] = 'image/png';
+		$model->create($data);
+		$this->assertFalse($model->validates());
+	}
+
 }
