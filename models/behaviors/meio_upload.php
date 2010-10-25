@@ -60,7 +60,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 /**
  * Setup the behavior.
- * It stores a reference to the model, merges the default options with the options for each field, and setup the validation rules.
+ * It stores a reference to the model and merge the default options with the options for each field.
  *
  * @param object $model
  * @param array $settings
@@ -114,11 +114,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		$result = $this->_uploadFile($model);
 		$allOk = true;
 		foreach ($result as $fieldName => $return) {
-			if ($return['return'] === false) {
-				if ($return['reason'] === 'validation') {
-					$model->validationErrors[$fieldName] = $return['error'];
-					$allOk = false;
-				}
+			if ($return !== true) {
+				$model->validationErrors[$fieldName] = $return;
+				$allOk = false;
 			}
 		}
 		return $allOk;
@@ -266,7 +264,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadMinWidth(&$model, $data, $size) {
-		return $this->_uploadCheckSize($model, $data, $size, 'minWidth');
+		return $this->_uploadCheckSize($data, $size, 'minWidth');
 	}
 
 /**
@@ -279,7 +277,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadMaxWidth(&$model, $data, $size) {
-		return $this->_uploadCheckSize($model, $data, $size, 'maxWidth');
+		return $this->_uploadCheckSize($data, $size, 'maxWidth');
 	}
 
 /**
@@ -292,7 +290,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadMinHeight(&$model, $data, $size) {
-		return $this->_uploadCheckSize($model, $data, $size, 'minHeight');
+		return $this->_uploadCheckSize($data, $size, 'minHeight');
 	}
 
 /**
@@ -305,19 +303,19 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadMaxHeight(&$model, $data, $size) {
-		return $this->_uploadCheckSize($model, $data, $size, 'maxHeight');
+		return $this->_uploadCheckSize($data, $size, 'maxHeight');
 	}
 
 /**
  * Check generic to size of image
  *
- * @param object $model
  * @param array $data
+ * @param integer $size Size in pixels
  * @param string $type Values: maxWidth, minWidth, maxHeight, minHeight
  * @return boolean
  * @access protected
  */
-	function _uploadCheckSize(&$model, &$data, $size, $type) {
+	function _uploadCheckSize(&$data, $size, $type) {
 		if (!is_int($size) && !is_numeric($size)) {
 			return false;
 		}
@@ -357,16 +355,15 @@ class MeioUploadBehavior extends ModelBehavior {
 					$this->_setFileToRemove($model, $fieldName);
 				}
 				$this->_cleanFields($model, $fieldName);
-				$return[$fieldName] = array('return' => true);
+				$return[$fieldName] = true;
 				continue;
 			}
 			// If no file was selected we do not need to proceed
 			if (empty($data[$model->alias][$fieldName]['name'])) {
 				unset($data[$model->alias][$fieldName]);
-				$return[$fieldName] = array('return' => true);
+				$return[$fieldName] = true;
 				continue;
 			}
-			list(, $ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
 
 			// If no file has been upload, then unset the field to avoid overwriting existant file
 			if (!isset($data[$model->alias][$fieldName]) || !is_array($data[$model->alias][$fieldName]) || empty($data[$model->alias][$fieldName]['name'])) {
@@ -383,23 +380,30 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Attempt to move uploaded file
 			$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
 			if ($copyResults !== true) {
-				$return[$fieldName] = array('return' => false, 'reason' => 'validation', 'error' => $copyResults);
+				$return[$fieldName] = $copyResults;
 				continue;
 			}
 
 			// If the file is an image, try to make the thumbnails
-			$isImage = in_array($this->_getMimeType($data[$model->alias][$fieldName]['tmp_name'], $data[$model->alias][$fieldName]['type']), $this->_imageTypes);
-			if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && $isImage) {
+			$mimeType = $this->_getMimeType($data[$model->alias][$fieldName]['tmp_name'], $data[$model->alias][$fieldName]['type']);
+			if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($mimeType, $this->_imageTypes)) {
+				list(, $ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
 				$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 			}
 
 			// Update model data
-			$data[$model->alias][$options['fields']['dir']] = $options['dir'];
-			$data[$model->alias][$options['fields']['mimetype']] = $data[$model->alias][$fieldName]['type'];
-			$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
+			if (!empty($options['fields']['dir'])) {
+				$data[$model->alias][$options['fields']['dir']] = $options['dir'];
+			}
+			if (!empty($options['fields']['mimetype'])) {
+				$data[$model->alias][$options['fields']['mimetype']] = $mimeType;
+			}
+			if (!empty($options['fields']['filesize'])) {
+				$data[$model->alias][$options['fields']['filesize']] = $data[$model->alias][$fieldName]['size'];
+			}
 			$data[$model->alias][$fieldName] = $data[$model->alias][$fieldName]['name'];
 
-			$return[$fieldName] = array('return' => true);
+			$return[$fieldName] = true;
 			continue;
 		}
 		return $return;
@@ -592,16 +596,9 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _createFolders($dir, $thumbsizes) {
 		$folder = new Folder();
 
-		if (!$folder->cd($dir)) {
-			$folder->create($dir);
-		}
-		if (!$folder->cd($dir. DS . 'thumb')) {
-			$folder->create($dir . DS . 'thumb');
-		}
+		$folder->create($dir); // If thumbsizes is empty
 		foreach ($thumbsizes as $thumbName) {
-			if (!$folder->cd($dir . DS .'thumb' . DS . $thumbName)) {
-				$folder->create($dir . DS . 'thumb' . DS . $thumbName);
-			}
+			$folder->create($dir . DS . 'thumb' . DS . $thumbName);
 		}
 	}
 
