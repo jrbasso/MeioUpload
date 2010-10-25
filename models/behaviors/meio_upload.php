@@ -166,6 +166,17 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
+ * Test the consistency of upload before validate anything
+ *
+ * @param object $model
+ * @return boolean
+ * @access public
+ */
+	function beforeValidate(&$model) {
+		return $this->_checkConsistency($model);
+	}
+
+/**
  * Change the destination directory at runtime
  *
  * @return void
@@ -330,6 +341,29 @@ class MeioUploadBehavior extends ModelBehavior {
 				if ($$imgType > $size) {
 					return false;
 				}
+			}
+		}
+		return true;
+	}
+
+/**
+ * Check if upload is ok
+ *
+ * @param object $model
+ * @return boolean
+ * @access public
+ */
+	function _checkConsistency(&$model) {
+		foreach ($this->_config[$model->alias] as $fieldName => $options) {
+			if (!isset($model->data[$model->alias][$fieldName])) {
+				continue;
+			}
+			$field = $model->data[$model->alias][$fieldName];
+			if (!is_array($field)) {
+				continue;
+			}
+			if ((!isset($field['error']) || $field['error'] !== UPLOAD_ERR_OK) && !isset($field['remove'])) {
+				return false;
 			}
 		}
 		return true;

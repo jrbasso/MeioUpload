@@ -381,12 +381,38 @@ class MeioUploadTestCase extends CakeTestCase {
 		$data['Meio']['filename'] = array();
 		$model->create();
 		$result = $model->save($data);
-		$this->assertFalse(empty($result));
+		$this->assertFalse($result);
 
 		$data['Meio']['filename'] = array('something');
 		$model->create();
 		$result = $model->save($data);
-		$this->assertFalse(empty($result));
+		$this->assertFalse($result);
+	}
+
+/**
+ * testValidationWithUploadError
+ *
+ * @return void
+ * @access public
+ */
+	function testValidationWithUploadError() {
+		$model = new Meio(array('dir' => MEIO_TMP));
+		$model->validate = array(
+			'filename' => array('rule' => 'uploadMaxSize')
+		);
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_INI_SIZE,
+					'size' => 95
+				)
+			)
+		);
+		$model->create($data);
+		$this->assertFalse($model->validates());
 	}
 
 /**
