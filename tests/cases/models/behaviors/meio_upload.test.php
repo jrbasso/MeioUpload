@@ -11,6 +11,7 @@
 
 App::import('Behavior', 'MeioUpload.MeioUpload');
 define('MEIO_TESTS', dirname(dirname(dirname(dirname(__FILE__)))) . DS);
+define('MEIO_TMP', TMP . 'tests' . DS . 'meio');
 
 /**
  * MeioUploadTestBehavior
@@ -136,9 +137,9 @@ class MeioUploadTestCase extends CakeTestCase {
  */
 	function start() {
 		parent::start();
-		$this->TestModel = new Meio(array('dir' => TMP . 'tests' . DS . 'meio'));
+		$this->TestModel = new Meio(array('dir' => MEIO_TMP));
 		$this->MeioUpload =& $this->TestModel->Behaviors->MeioUploadTest;
-		$file = new File(TMP . 'tests' . DS . 'meio');
+		$file = new File(MEIO_TMP);
 		$file->delete();
 	}
 
@@ -150,7 +151,7 @@ class MeioUploadTestCase extends CakeTestCase {
  */
 	function end() {
 		parent::end();
-		$file = new File(TMP . 'tests' . DS . 'meio');
+		$file = new File(MEIO_TMP);
 		$file->delete();
 	}
 
@@ -198,7 +199,7 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->MeioUpload->adjustName($this->TestModel, 'filename', false);
 		$this->assertEqual($this->TestModel->data[$this->TestModel->alias]['filename']['name'], 'default_1_hello.jpg');
 
-		$file = TMP . 'tests' . DS . 'meio' . DS . 'default.jpg';
+		$file = MEIO_TMP . DS . 'default.jpg';
 		if ($this->skipIf(!@touch($file), 'Fail to create file.')) {
 			return;
 		}
@@ -338,7 +339,7 @@ class MeioUploadTestCase extends CakeTestCase {
 		$result = $model->Behaviors->MeioUploadTest->readConfig('Meio.filename.dir');
 		$this->assertEqual(WWW_ROOT . 'testing', $result);
 
-		$model = new Meio(array('dir' => TMP . 'tests' . DS . 'meio'));
+		$model = new Meio(array('dir' => MEIO_TMP));
 		$data = array(
 			'Meio' => array(
 				'filename' => array(
@@ -352,8 +353,8 @@ class MeioUploadTestCase extends CakeTestCase {
 		);
 		$model->create();
 		$this->assertTrue($model->save($data));
-		$this->assertTrue(file_exists(TMP . 'tests' . DS . 'meio' . DS . 'test.png'));
-		@unlink(TMP . 'tests' . DS . 'meio' . DS . 'test.png');
+		$this->assertTrue(file_exists(MEIO_TMP . DS . 'test.png'));
+		@unlink(MEIO_TMP . DS . 'test.png');
 	}
 
 /**
@@ -363,7 +364,7 @@ class MeioUploadTestCase extends CakeTestCase {
  * @access public
  */
 	function testUploadMaxSize() {
-		$model = new Meio(array('dir' => TMP . 'tests' . DS . 'meio'));
+		$model = new Meio(array('dir' => MEIO_TMP));
 		$model->validate = array(
 			'filename' => array('rule' => 'uploadMaxSize')
 		);
@@ -380,8 +381,8 @@ class MeioUploadTestCase extends CakeTestCase {
 		);
 		$model->create();
 		$this->assertTrue($model->save($data));
-		$this->assertTrue(file_exists(TMP . 'tests' . DS . 'meio' . DS . 'test.png'));
-		@unlink(TMP . 'tests' . DS . 'meio' . DS . 'test.png');
+		$this->assertTrue(file_exists(MEIO_TMP . DS . 'test.png'));
+		@unlink(MEIO_TMP . DS . 'test.png');
 
 		$data['Meio']['filename']['size'] = 3145728; // 3MB
 		$model->create();
