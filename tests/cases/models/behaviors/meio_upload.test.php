@@ -42,6 +42,10 @@ class MeioUploadTestBehavior extends MeioUploadBehavior {
 		return $this->_normalizePath($dir);
 	}
 
+	function getMimeType($file, $mimeType = 'application/octet-stream') {
+		return $this->_getMimeType($file, $mimeType);
+	}
+
 	function _copyFileFromTemp($tmpName, $saveAs) {
 		if (!copy($tmpName, $saveAs)) {
 			return __d('meio_upload', 'Problems in the copy of the file.', true);
@@ -292,6 +296,18 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertEqual('C:\\path\\file.png', $this->MeioUpload->normalizePath('C:\\path\\file.png'));
 		$this->assertEqual('C:/path/file.png', $this->MeioUpload->normalizePath('C:/path/file.png'));
 		$this->assertEqual(WWW_ROOT . 'file.png', $this->MeioUpload->normalizePath('file.png'));
+	}
+
+/**
+ * testGetMimeType
+ *
+ * @return void
+ * @access public
+ */
+	function testGetMimeType() {
+		$this->assertEqual($this->MeioUpload->getMimeType('anything'), 'application/octet-stream');
+		$this->assertEqual($this->MeioUpload->getMimeType('anything', 'image/jpeg'), 'image/jpeg');
+		$this->assertEqual($this->MeioUpload->getMimeType(MEIO_TESTS . 'files' . DS . '1.png'), 'image/png');
 	}
 
 /**

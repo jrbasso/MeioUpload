@@ -224,7 +224,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			$mimeAllowed = array($mimeAllowed);
 		}
 		foreach ($data as $fieldName => $field) {
-			if (!in_array($field['type'], $mimeAllowed)) {
+			if (!in_array($this->_getMimeType($field['tmp_name'], $field['type']), $mimeAllowed)) {
 				return false;
 			}
 		}
@@ -388,7 +388,8 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 
 			// If the file is an image, try to make the thumbnails
-			if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
+			$isImage = in_array($this->_getMimeType($data[$model->alias][$fieldName]['tmp_name'], $data[$model->alias][$fieldName]['type']), $this->_imageTypes);
+			if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && $isImage) {
 				$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 			}
 
@@ -691,6 +692,37 @@ class MeioUploadBehavior extends ModelBehavior {
 			$dir = WWW_ROOT . $dir;
 		}
 		return $dir;
+	}
+
+/**
+ * Get the mime type of file
+ *
+ * @param string $file
+ * @param string $mimeType
+ * @return string
+ * @access protected
+ */
+	function _getMimeType($file, $mimeType = 'application/octet-stream') {
+		if (!is_readable($file)) {
+			return $mimeType;
+		}
+		if (function_exists('finfo_file')) {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mime = finfo_file($finfo, $file);
+			if (!empty($mime)) {
+				return $mime;
+			}
+		}
+		if (function_exists('mime_content_type')) {
+			return mime_content_type($file);
+		}
+		if (function_exists('getimagesize')) {
+			$info = @getimagesize($file);
+			if (!empty($info['mime'])) {
+				return $info['mime'];
+			}
+		}
+		return $mimeType;
 	}
 
 }
