@@ -480,3 +480,58 @@ class MeioUploadTestCase extends CakeTestCase {
 	}
 
 }
+
+class MeioUploadGdTest extends CakeTestCase {
+
+/**
+ * Fixtures
+ *
+ * @var array
+ * @access public
+ */
+	var $fixtures = array('plugin.meio_upload.meio');
+
+/**
+ * skip
+ *
+ * @return boolean
+ * @access public
+ */
+	function skip() {
+		$this->skipIf(!extension_loaded('gd'), '%s GD extension not loaded.');
+	}
+
+/**
+ * testUploadDimensions
+ *
+ * @return void
+ * @access public
+ */
+	function testUploadDimensions() {
+		$types = array('uploadMinWidth' => true, 'uploadMinHeight' => true, 'uploadMaxWidth' => false, 'uploadMaxHeight' => false);
+		foreach ($types as $type => $min) {
+			$model = new Meio(array('dir' => MEIO_TMP));
+			$model->validate = array(
+				'filename' => array('rule' => array($type, $min ? 160 : 180))
+			);
+			$data = array(
+				'Meio' => array(
+					'filename' => array(
+						'name' => 'test.png',
+						'type' => 'image/png',
+						'tmp_name' => MEIO_TESTS . 'files' . DS . 'cakephp.gif',
+						'error' => UPLOAD_ERR_OK,
+						'size' => 95
+					)
+				)
+			);
+			$model->create($data);
+			$this->assertTrue($model->validates());
+
+			$model->validate['filename']['rule'] = array($type, $min ? 180 : 160);
+			$model->create($data);
+			$this->assertFalse($model->validates());
+		}
+	}
+
+}
