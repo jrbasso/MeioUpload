@@ -243,7 +243,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function uploadExtension(&$model, $data, $extAllowed, $extra = null) {
 		if (!$extra) {
-			$extAllowed = array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico');
+			$extAllowed = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'ico');
 		}
 		if (!is_array($extAllowed)) {
 			$extAllowed = array($extAllowed);

@@ -433,4 +433,50 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertFalse($model->validates());
 	}
 
+/**
+ * testUploadExtension
+ *
+ * @return void
+ * @access public
+ */
+	function testUploadExtension() {
+		$model = new Meio(array('dir' => MEIO_TMP));
+		$model->validate = array(
+			'filename' => array('rule' => 'uploadExtension')
+		);
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_OK,
+					'size' => 95
+				)
+			)
+		);
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['name'] = 'te.st.png';
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['name'] = 'test..png';
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['name'] = 'test.txt';
+		$model->create($data);
+		$this->assertFalse($model->validates());
+
+		$model->validate['filename']['rule'] = array('uploadExtension', array('txt', 'doc'));
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$data['Meio']['filename']['name'] = 'test.png';
+		$model->create($data);
+		$this->assertFalse($model->validates());
+	}
+
 }
