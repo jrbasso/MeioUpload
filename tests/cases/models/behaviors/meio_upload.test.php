@@ -358,6 +358,38 @@ class MeioUploadTestCase extends CakeTestCase {
 	}
 
 /**
+ * testValidationWithoutFile
+ *
+ * @return void
+ * @access public
+ */
+	function testValidationWithoutFile() {
+		$model = new Meio(array('dir' => MEIO_TMP));
+		$model->validate = array(
+			'filename' => array('rule' => 'uploadMaxSize')
+		);
+		$data = array(
+			'Meio' => array(
+				'filename' => '',
+				'dir' => ''
+			)
+		);
+		$model->create();
+		$result = $model->save($data);
+		$this->assertFalse(empty($result));
+
+		$data['Meio']['filename'] = array();
+		$model->create();
+		$result = $model->save($data);
+		$this->assertFalse(empty($result));
+
+		$data['Meio']['filename'] = array('something');
+		$model->create();
+		$result = $model->save($data);
+		$this->assertFalse(empty($result));
+	}
+
+/**
  * testUploadMaxSize
  *
  * @return void
