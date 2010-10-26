@@ -416,6 +416,60 @@ class MeioUploadTestCase extends CakeTestCase {
 	}
 
 /**
+ * testRemove
+ *
+ * @return void
+ * @access public
+ */
+	function testRemove() {
+		$model = new Meio(array('dir' => MEIO_TMP));
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_OK,
+					'size' => 95
+				)
+			)
+		);
+		$model->create();
+		$this->assertTrue($model->save($data));
+		$this->assertTrue(file_exists(MEIO_TMP . DS . 'test.png'));
+
+		$result = $model->find('all');
+		$expected = array(array(
+			'Meio' => array(
+				'id' => 1,
+				'filename' => 'test.png',
+				'dir' => MEIO_TMP,
+				'filesize' => 95,
+				'mimetype' => 'image/png'
+			)
+		));
+		$this->assertEqual($result, $expected);
+
+		$data = $expected[0];
+		$data['Meio']['id'] = 1;
+		$data['Meio']['filename'] = array('remove' => '1');
+		$this->assertTrue($model->save($data));
+
+		$result = $model->find('all');
+		$expected = array(array(
+			'Meio' => array(
+				'id' => 1,
+				'filename' => '',
+				'dir' => '',
+				'filesize' => '',
+				'mimetype' => ''
+			)
+		));
+		$this->assertEqual($result, $expected);
+		$this->assertFalse(file_exists(MEIO_TMP . DS . 'test.png'));
+	}
+
+/**
  * testUploadMaxSize
  *
  * @return void
