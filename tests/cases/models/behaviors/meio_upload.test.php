@@ -591,6 +591,62 @@ class MeioUploadTestCase extends CakeTestCase {
 		$this->assertFalse($model->validates());
 	}
 
+/**
+ * testUploadAllowEmpty
+ *
+ * @return void
+ * @access public
+ */
+	function testUploadAllowEmpty() {
+		$model = new Meio(array('dir' => MEIO_TMP));
+		$data_no_file = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => '',
+					'type' => '',
+					'tmp_name' => '',
+					'error' => UPLOAD_ERR_NO_FILE,
+					'size' => 0
+				)
+			)
+		);
+		$data = array(
+			'Meio' => array(
+				'filename' => array(
+					'name' => 'test.png',
+					'type' => 'image/png',
+					'tmp_name' => MEIO_TESTS . 'files' . DS . '1.png',
+					'error' => UPLOAD_ERR_OK,
+					'size' => 95
+				)
+			)
+		);
+
+		$model->validate = array('filename' => array('rule' => array('uploadAllowEmpty', true)));
+		$model->create($data_no_file);
+		$this->assertTrue($model->validates());
+
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$model->validate = array('filename' => array('rule' => array('uploadAllowEmpty', false)));
+
+		$model->create($data_no_file);
+		$this->assertFalse($model->validates());
+
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+		$model->validate = null;
+
+		$model->create($data_no_file);
+		$this->assertTrue($model->validates());
+
+		$model->create($data);
+		$this->assertTrue($model->validates());
+
+	}
+
 }
 
 class MeioUploadGdTest extends CakeTestCase {

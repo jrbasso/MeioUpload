@@ -317,6 +317,21 @@ class MeioUploadBehavior extends ModelBehavior {
 		return $this->_uploadCheckSize($data, $size, 'maxHeight');
 	}
 
+
+/**
+ * Validator: Checks if is allowed to not submit a file
+ *
+ * @param object $model
+ * @param array $data
+ * @param boolean $allow
+ * @return boolean
+ * @access public
+ */
+	function uploadAllowEmpty (&$model, $data, $allow = false) {
+	  $data = reset($data);
+	  return ($data['error'] == UPLOAD_ERR_NO_FILE && $allow) || ($data['error'] != UPLOAD_ERR_NO_FILE);
+	}
+
 /**
  * Check generic to size of image
  *
@@ -362,7 +377,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (!is_array($field)) {
 				continue;
 			}
-			if ((!isset($field['error']) || $field['error'] !== UPLOAD_ERR_OK) && !isset($field['remove'])) {
+			if ((!isset($field['error']) || ($field['error'] !== UPLOAD_ERR_OK && $field['error'] !== UPLOAD_ERR_NO_FILE)) && !isset($field['remove'])) {
 				return false;
 			}
 		}
