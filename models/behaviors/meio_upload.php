@@ -609,7 +609,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		switch (strtolower($matches[2])) {
 			case 'kb':
 				return $matches[1] * 1024;
-			case'mb':
+			case 'mb':
 				return $matches[1] * 1048576;
 			case 'gb':
 				return $matches[1] * 1073741824;
