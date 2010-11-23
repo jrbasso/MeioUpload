@@ -274,12 +274,15 @@ class MeioUploadBehavior extends ModelBehavior {
 			$options['dir'] = rtrim($this->_replaceTokens($model, $options['dir'], $field, $tokens), DS);
 			$options['uploadName'] = rtrim($this->_replaceTokens($model, $options['uploadName'], $field, $tokens), DS);
 
-			// Create the folders for the uploads
-			// Create the folders for the uploads
-			if (!empty($options['thumbsizes'])) {
-				$this->_createFolders($options['dir'], $options['thumbnailDir'], array_keys($options['thumbsizes']));
-			} else {
-				$this->_createFolders($options['dir'], $options['thumbnailDir'], array());
+			// Create the folders for the uploads only if you want
+			if($options['createDirectory'])
+			{
+				// Create the folders for the uploads
+				if (!empty($options['thumbsizes'])) {
+					$this->_createFolders($options['dir'], $options['thumbnailDir'], array_keys($options['thumbsizes']));
+				} else {
+					$this->_createFolders($options['dir'], $options['thumbnailDir'], array());
+				}
 			}
 
 			// Replace tokens in the fields names
