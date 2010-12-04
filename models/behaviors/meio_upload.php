@@ -695,7 +695,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			// Take care of removal flagged field
 			// However, this seems to be kind of code duplicating, see line ~711
 			if (!empty($data[$model->alias][$fieldName]['remove'])) {
-				$this->_markForDeletion($model, $fieldName, $data, $options['default']);
+				$this->_markForDeletion($model, $fieldName, $data, $options['default'], $options['thumbnailDir']);
 				$data = $this->_nullifyDataFields($model, $fieldName, $data, $options);
 				$result = array('return' => true, 'data' => $data);
 				continue;
@@ -1205,10 +1205,11 @@ class MeioUploadBehavior extends ModelBehavior {
  * @param string $fieldName name of field that holds a reference to the file
  * @param array $data
  * @param strng $default
+ * @param string $thumbDir Thumb directory
  * @return void
  * @access protected
  */
-	function _markForDeletion(&$model, $fieldName, $data, $default) {
+	function _markForDeletion(&$model, $fieldName, $data, $default, $thumbDir) {
 		if (!empty($data[$model->alias][$fieldName]['remove'])) {
 			if ($default) {
 				$data[$model->alias][$fieldName] = $default;
@@ -1217,7 +1218,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 			//if the record is already saved in the database, set the existing file to be removed after the save is sucessfull
 			if (!empty($data[$model->alias][$model->primaryKey])) {
-				$this->_setFileToRemove($model, $fieldName);
+				$this->_setFileToRemove($model, $fieldName, $thumbDir);
 			}
 		}
 	}
