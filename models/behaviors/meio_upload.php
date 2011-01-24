@@ -854,6 +854,9 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (isset($value['zoomCrop'])) {
 				$params['zoomCrop'] = $value['zoomCrop'];
 			}
+			if (isset($value['watermark'])) {
+				$params['watermark'] = $value['watermark'];
+			}
 			$this->_createThumbnail($model, $saveAs, $thumbSaveAs, $fieldName, $params);
 		}
 	}
@@ -899,6 +902,9 @@ class MeioUploadBehavior extends ModelBehavior {
 		$phpThumb->setParameter('zc', $this->__fields[$model->alias][$fieldName]['zoomCrop']);
 		if (isset($params['zoomCrop'])){
 			$phpThumb->setParameter('zc', $params['zoomCrop']);
+		}
+		if (isset($params['watermark'])){
+			$phpThumb->fltr = array("wmi|". IMAGES . $params['watermark']."|BR|50|5");
 		}
 		$phpThumb->q = $params['thumbnailQuality'];
 
