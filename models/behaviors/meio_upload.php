@@ -35,6 +35,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
 		'folderAsField' => null, // Can be the name of any field in $this->data
 		'uploadName' => null, // Can also be the tokens {ModelName} or {fieldName}
+		'removeOriginal' => false,
 		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
 		'allowedExt' => array('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico'),
@@ -733,6 +734,9 @@ class MeioUploadBehavior extends ModelBehavior {
 				if ((count($options['thumbsizes']) > 0) && count($options['allowedExt']) > 0 && in_array($data[$model->alias][$fieldName]['type'], $this->_imageTypes)) {
 					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
 				}
+				if ($options['removeOriginal']) {
+					$this->_removeOriginal($saveAs);
+				}
 
 				$data = $this->_unsetDataFields($model->alias, $fieldName, $model->data, $options);
 				$result = array('return' => true, 'data' => $data);
@@ -1247,6 +1251,19 @@ class MeioUploadBehavior extends ModelBehavior {
 			}
 		}
 		return true;
+	}
+
+/**
+ * Remove original file
+ *
+ * @param string $saveAs
+ * @return boolean
+ */
+	function _removeOriginal($saveAs) {
+		if (is_file($saveAs) && unlink($saveAs)) {
+			return true;
+		}
+		return false;
 	}
 
 /**
