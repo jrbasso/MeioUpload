@@ -435,7 +435,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// If the file is an image, try to make the thumbnails
 			$mimeType = $this->_getMimeType($data[$model->alias][$fieldName]['tmp_name'], $data[$model->alias][$fieldName]['type']);
-			if (!empty($options['thumbsizes']) && !empty($options['allowedExt']) && in_array($mimeType, $this->_imageTypes)) {
+			if (!empty($options['thumbsizes']) && in_array($mimeType, $this->_imageTypes)) {
 				list(, $ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
 				$this->_createThumbnails($model, $fieldName, $saveAs, $ext, $options);
 			}
