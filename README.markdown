@@ -41,12 +41,12 @@ You also need to specify the fields in your database like so
 Create your upload view, make sure it's a multipart/form-data form, and the filename field is of type 'file':
 
 	<?php
-		echo $form->create('Image', array('type' => 'file'));
-		echo $form->input('filename', array('type' => 'file'));
-		echo $form->input('dir', array('type' => 'hidden'));
-		echo $form->input('mimetype', array('type' => 'hidden'));
-		echo $form->input('filesize', array('type' => 'hidden'));
-		echo $form->end('Submit');
+		echo $this->Form->create('Image', array('type' => 'file'));
+		echo $this->Form->input('filename', array('type' => 'file'));
+		echo $this->Form->input('dir', array('type' => 'hidden'));
+		echo $this->Form->input('mimetype', array('type' => 'hidden'));
+		echo $this->Form->input('filesize', array('type' => 'hidden'));
+		echo $this->Form->end('Submit');
 	?>
 You'll want to include any other fields in your Model as well :)
 
