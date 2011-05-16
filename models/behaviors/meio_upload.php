@@ -33,8 +33,10 @@ class MeioUploadBehavior extends ModelBehavior {
 		'createDirectory' => true,
 		'encryptedFolder' => false,
 		'dir' => 'uploads{DS}{ModelName}{DS}{fieldName}',
+		'folderPermission' => 0755, // Set permission of dynamically created folder
 		'folderAsField' => null, // Can be the name of any field in $this->data
 		'uploadName' => null, // Can also be the tokens {ModelName} or {fieldName}
+		'filePermission' => 0755, // Set permission of uploaded files in the server
 		'removeOriginal' => false,
 		'maxSize' => 2097152, // 2MB
 		'allowedMime' => array('image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon'),
@@ -449,7 +451,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!is_dir($options['dir'])) {
 					if ($options['createDirectory']) {
 						$folder = &new Folder();
-						if (!$folder->create($options['dir'])) {
+						if (!$folder->create($options['dir'], $this->settings['folderPermission'])) {
 							trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', true), $options['dir']), E_USER_WARNING);
 							return false;
 						}
@@ -1139,14 +1141,14 @@ class MeioUploadBehavior extends ModelBehavior {
 		$folder = new Folder();
 
 		if (!$folder->cd($dir)) {
-			$folder->create($dir);
+			$folder->create($dir, $this->settings['folderPermission']);
 		}
 		if (!$folder->cd($dir. DS . $thumbDir)) {
-			$folder->create($dir . DS . $thumbDir);
+			$folder->create($dir . DS . $thumbDir, $this->settings['folderPermission']);
 		}
 		foreach ($thumbsizes as $thumbsize) {
 			if ($thumbsize != 'normal' && !$folder->cd($dir . DS . $thumbDir . DS . $thumbsize)) {
-				$folder->create($dir . DS . $thumbDir . DS . $thumbsize);
+				$folder->create($dir . DS . $thumbDir . DS . $thumbsize, $this->settings['folderPermission']);
 			}
 		}
 	}
@@ -1165,7 +1167,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return false;
 		}
 		$file = new File($tmpName, $saveAs);
-		$temp = new File($saveAs, true);
+		$temp = new File($saveAs, true, $this->settings['filePermission']);
 		if (!$temp->write($file->read())) {
 			$results = __d('meio_upload', 'Problems in the copy of the file.', true);
 		}
