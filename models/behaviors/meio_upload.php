@@ -281,9 +281,9 @@ class MeioUploadBehavior extends ModelBehavior {
 			if($options['createDirectory']) {
 				// Create the folders for the uploads
 				if (!empty($options['thumbsizes'])) {
-					$this->_createFolders($options['dir'], $options['thumbnailDir'], array_keys($options['thumbsizes']));
+					$this->_createFolders($options['dir'], $options['thumbnailDir'], array_keys($options['thumbsizes']), $options['folderPermission']);
 				} else {
-					$this->_createFolders($options['dir'], $options['thumbnailDir'], array());
+					$this->_createFolders($options['dir'], $options['thumbnailDir'], array(), $options['folderPermission']);
 				}
 			}
 
@@ -726,7 +726,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				$saveAs = $options['dir'] . DS . $data[$model->alias][$options['uploadName']] . '.' . $sub;
 
 				// Attempt to move uploaded file
-				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
+				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs, $options['filePermission']);
 				if ($copyResults !== true) {
 					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $fieldName, 'error' => $copyResults));
 					continue;
@@ -790,7 +790,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				}
 
 				// Attempt to move uploaded file
-				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs);
+				$copyResults = $this->_copyFileFromTemp($data[$model->alias][$fieldName]['tmp_name'], $saveAs, $options['filePermission']);
 				if ($copyResults !== true) {
 					$result = array('return' => false, 'reason' => 'validation', 'extra' => array('field' => $fieldName, 'error' => $copyResults));
 					continue;
@@ -1131,24 +1131,25 @@ class MeioUploadBehavior extends ModelBehavior {
  * @param string $dir Path to uploads
  * @param string $thumbDir Path to thumbnails
  * @param array $thumbsizes
+ * @param integer $folderPermission octal value of created folder permission
  * @return void
  * @access protected
  */
-	function _createFolders($dir, $thumbDir, $thumbsizes) {
+	function _createFolders($dir, $thumbDir, $thumbsizes, $folderPermission) {
 		if ($dir[0] !== '/') {
 			$dir = WWW_ROOT . $dir;
 		}
 		$folder = new Folder();
 
 		if (!$folder->cd($dir)) {
-			$folder->create($dir, $this->settings['folderPermission']);
+			$folder->create($dir, $folderPermission);
 		}
 		if (!$folder->cd($dir. DS . $thumbDir)) {
-			$folder->create($dir . DS . $thumbDir, $this->settings['folderPermission']);
+			$folder->create($dir . DS . $thumbDir, $folderPermission);
 		}
 		foreach ($thumbsizes as $thumbsize) {
 			if ($thumbsize != 'normal' && !$folder->cd($dir . DS . $thumbDir . DS . $thumbsize)) {
-				$folder->create($dir . DS . $thumbDir . DS . $thumbsize, $this->settings['folderPermission']);
+				$folder->create($dir . DS . $thumbDir . DS . $thumbsize, $folderPermission);
 			}
 		}
 	}
@@ -1158,16 +1159,17 @@ class MeioUploadBehavior extends ModelBehavior {
  *
  * @param string $tmpName full path to temporary file
  * @param string $saveAs full path to move the file to
+ * @param integer $filePermission octal value of created file permission
  * @return mixed true is successful, error message if not
  * @access protected
  */
-	function _copyFileFromTemp($tmpName, $saveAs) {
+	function _copyFileFromTemp($tmpName, $saveAs, $filePermission) {
 		$results = true;
 		if (!is_uploaded_file($tmpName)) {
 			return false;
 		}
 		$file = new File($tmpName, $saveAs);
-		$temp = new File($saveAs, true, $this->settings['filePermission']);
+		$temp = new File($saveAs, true, $filePermission);
 		if (!$temp->write($file->read())) {
 			$results = __d('meio_upload', 'Problems in the copy of the file.', true);
 		}
