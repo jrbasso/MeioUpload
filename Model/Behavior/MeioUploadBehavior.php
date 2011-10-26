@@ -15,7 +15,9 @@
  * @filesource http://github.com/jrbasso/MeioUpload
  * @version 2.2
  */
-App::import('Core', array('File', 'Folder'));
+
+App::uses('File', 'Utility');
+App::uses('Folder', 'Utility');
 
 /**
  * MeioUpload Behavior
@@ -183,37 +185,37 @@ class MeioUploadBehavior extends ModelBehavior {
 	function __construct() {
 		$messages = array(
 			'FieldName' => array(
-				'message' => __d('meio_upload', 'This field has not been defined between the parameters of MeioUploadBehavior.', true)
+				'message' => __d('meio_upload', 'This field has not been defined between the parameters of MeioUploadBehavior.')
 			),
 			'Dir' => array(
-				'message' => __d('meio_upload', 'The directory where the file would be placed there or is protected against writing.', true)
+				'message' => __d('meio_upload', 'The directory where the file would be placed there or is protected against writing.')
 			),
 			'Empty' => array(
-				'message' => __d('meio_upload', 'The file can not be empty.', true)
+				'message' => __d('meio_upload', 'The file can not be empty.')
 			),
 			'UploadError' => array(
-				'message' => __d('meio_upload', 'There were problems in uploading the file.', true)
+				'message' => __d('meio_upload', 'There were problems in uploading the file.')
 			),
 			'MaxSize' => array(
-				'message' => __d('meio_upload', 'The maximum file size is exceeded.', true)
+				'message' => __d('meio_upload', 'The maximum file size is exceeded.')
 			),
 			'InvalidMime' => array(
-				'message' => __d('meio_upload', 'Invalid file type.', true)
+				'message' => __d('meio_upload', 'Invalid file type.')
 			),
 			'InvalidExt' => array(
-				'message' => __d('meio_upload', 'Invalid file extension.', true)
+				'message' => __d('meio_upload', 'Invalid file extension.')
 			),
 			'MinWidth' => array(
-				'message' => __d('meio_upload', 'Image width is smaller than minimum allowed.', true)
+				'message' => __d('meio_upload', 'Image width is smaller than minimum allowed.')
 			),
 			'MinHeight' => array(
-				'message' => __d('meio_upload', 'Image height is smaller than minimum allowed.', true)
+				'message' => __d('meio_upload', 'Image height is smaller than minimum allowed.')
 			),
 			'MaxWidth' => array(
-				'message' => __d('meio_upload', 'Image width is larger than maximum allowed.', true)
+				'message' => __d('meio_upload', 'Image width is larger than maximum allowed.')
 			),
 			'MaxHeight' => array(
-				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.', true)
+				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.')
 			)
 		);
 		$this->defaultValidations = $this->_arrayMerge($this->defaultValidations, $messages);
@@ -249,13 +251,13 @@ class MeioUploadBehavior extends ModelBehavior {
 
 			// Check if given field exists
 			if ($options['useTable'] && !$model->hasField($field)) {
-				trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', true), $field, $model->alias), E_USER_WARNING);
+				trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" doesn\'t exists in the model "%s".', $field, $model->alias), E_USER_WARNING);
 			}
 
 			// Including the default name to the replacements
 			if ($options['default']) {
 				if (strpos($options['default'], '.') === false) {
-					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The default option must be the filename with extension.', true), E_USER_ERROR);
+					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The default option must be the filename with extension.'), E_USER_ERROR);
 				}
 				$this->_includeDefaultReplacement($options['default']);
 			}
@@ -264,7 +266,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if ($options['thumbnails'] == true) {
 				foreach ($options['thumbsizes'] as $name => $size) {
 					if (empty($name) || !ctype_alnum($name)) {
-						trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.', true), E_USER_ERROR);
+						trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The thumbsizes names must be alphanumeric.'), E_USER_ERROR);
 					}
 				}
 			}
@@ -425,7 +427,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			if (isset($this->__fields[$model->alias][$fieldName])) {
 				continue;
 			} else {
-				$this->log(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', true), $fieldName, $model->alias));
+				$this->log(__d('meio_upload', 'MeioUploadBehavior Error: The field "%s" wasn\'t declared as part of the MeioUploadBehavior in model "%s".', $fieldName, $model->alias));
 				return false;
 			}
 		}
@@ -452,18 +454,18 @@ class MeioUploadBehavior extends ModelBehavior {
 					if ($options['createDirectory']) {
 						$folder = &new Folder();
 						if (!$folder->create($options['dir'], $this->settings['folderPermission'])) {
-							trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', true), $options['dir']), E_USER_WARNING);
+							trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', $options['dir']), E_USER_WARNING);
 							return false;
 						}
 					} else {
-						trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist.', true), $options['dir']), E_USER_WARNING);
+						trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist.', $options['dir']), E_USER_WARNING);
 						return false;
 					}
 				}
 
 				// Check if directory is writable
 				if (!is_writable($options['dir'])) {
-					trigger_error(sprintf(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s isn\'t writable.', true), $options['dir']), E_USER_WARNING);
+					trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s isn\'t writable.', $options['dir']), E_USER_WARNING);
 					return false;
 				}
 			}
@@ -840,6 +842,10 @@ class MeioUploadBehavior extends ModelBehavior {
 			} else {
 				$thumbSaveAs = $this->_getThumbnailName($saveAs, $options['dir'], $options['thumbnailDir'], $key, $data[$model->alias][$fieldName]['name']);
 			}
+
+			// Make the thumbnail reference absolute to avoid problems with phpThumb in CakePHP 2.0
+			$thumbSaveAs = WWW_ROOT . DIRECTORY_SEPARATOR . $thumbSaveAs;
+
 			$params = array();
 			if (isset($value['width'])) {
 				$params['thumbWidth'] = $value['width'];
@@ -886,7 +892,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			$params);
 
 		// Import phpThumb class
-		App::import('Vendor','phpthumb', array('file' => 'phpThumb'.DS.'phpthumb.class.php'));
+		$test = App::import('Vendor','phpthumb', array('file' => 'phpThumb' . DS . 'phpthumb.class.php'));
 
 		// Configuring thumbnail settings
 		$phpThumb = new phpthumb;
@@ -922,7 +928,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		// Creating thumbnail
 		if ($phpThumb->GenerateThumbnail()) {
 			if (!$phpThumb->RenderToFile($target)) {
-				$this->_addError('Could not render image to: '.$target);
+				$this->_addError('Could not render image to: ' . $target);
 			}
 		}
 	}
@@ -1081,7 +1087,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			return $size;
 		}
 		if (!preg_match('/^([1-9][0-9]*) (kb|mb|gb|tb)$/i', $size, $matches)) {
-			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size option format is invalid.', true), E_USER_ERROR);
+			trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size option format is invalid.'), E_USER_ERROR);
 			return 0;
 		}
 		switch (strtolower($matches[2])) {
@@ -1094,7 +1100,7 @@ class MeioUploadBehavior extends ModelBehavior {
 			case 'tb':
 				return $matches[1] * 1099511627776;
 			default:
-				trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size unit is invalid.', true), E_USER_ERROR);
+				trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The max_size unit is invalid.'), E_USER_ERROR);
 		}
 		return 0;
 	}
@@ -1171,7 +1177,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$file = new File($tmpName, $saveAs);
 		$temp = new File($saveAs, true, $filePermission);
 		if (!$temp->write($file->read())) {
-			$results = __d('meio_upload', 'Problems in the copy of the file.', true);
+			$results = __d('meio_upload', 'Problems in the copy of the file.');
 		}
 		$file->close();
 		$temp->close();
