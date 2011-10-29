@@ -1,4 +1,4 @@
-# MeioUpload 2.0 Behavior Plugin
+# MeioUpload 2.3 Behavior Plugin
 
 This behavior provides to upload files in your application, as well as the possibility to translate the error message (originally only in portuguese) and the use of phpThumb as a better thumbnail generator.
 
