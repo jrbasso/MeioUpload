@@ -1,4 +1,4 @@
-# MeioUpload 2.0 Behavior Plugin
+# MeioUpload 4.0 Behavior Plugin
 
 This behavior provides to upload files in your application, as well as the possibility to translate the error message (originally only in portuguese) and the use of phpThumb as a better thumbnail generator.
 
@@ -6,9 +6,9 @@ You can also use it in No-DB mode, which means that no data for the upload is st
 
 
 ## Installation
-- Clone from github : in your app directory type `git clone git://github.com/jrbasso/MeioUpload.git plugins/meio_upload`
-- Add as a git submodule : in your app directory type `git submodule add git://github.com/jrbasso/MeioUpload.git plugins/meio_upload`
-- Download an archive from github and extract it in `app/plugins/meio_upload`
+- Clone from github : in your app directory type `git clone git://github.com/jrbasso/MeioUpload.git Plugin/MeioUpload`
+- Add as a git submodule : in your app directory type `git submodule add git://github.com/jrbasso/MeioUpload.git Plugin/MeioUpload`
+- Download an archive from github and extract it in `app/Plugin/MeioUpload`
 
 * If you require thumbnails for image generation, download the latest copy of phpThumb and extract it into your vendors directory. Should end up like: /vendors/phpThumb/{files}. (http://phpthumb.sourceforge.net)
 
