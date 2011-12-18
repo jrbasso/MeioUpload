@@ -28,7 +28,7 @@ class Upload extends CakeTestModel {
 		)
 	);
 
-} 
+}
 
 class MeioUploadTestCase extends CakeTestCase {
 
