@@ -56,3 +56,16 @@ The behavior code will save the uploaded file's name in the 'filename' field in 
 
 ### Deleting an uploaded file while keeping the record
 Flag the file for deletion by setting `data[Model][filename][remove]` to something non-empty, e.g. `TRUE`. The uploaded file including possible thumbnails will then be deleted together with adherent database fields upon save. Note that the record will be preserved, only the file meta-data columns will be reset.
+
+### How to run unit tests for Cake 2.0 Models which use MeioUpload 4.0 as Behavior
+
+Assuming we have a Model called Image which use MeioUpload 4.0 as Behavior.
+
+Before we run the save function in the unit test for Image, ensure that this piece of code is executed
+
+		// turn off the check to see if HTTP POST is used to upload the source file
+		$this->Image->validate['filename'] = array(
+			'HttpPost' => array(
+				'check' => false
+			)
+		);
