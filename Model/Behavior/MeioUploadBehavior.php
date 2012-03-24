@@ -130,6 +130,11 @@ class MeioUploadBehavior extends ModelBehavior {
 			'check' => true,
 			'last' => true
 		),
+		'HttpPost' => array(
+			'rule' => array('uploadCheckHttpPost'),
+			'check' => true,
+			'last' => true
+		),
 	);
 
 /**
@@ -216,6 +221,9 @@ class MeioUploadBehavior extends ModelBehavior {
 			),
 			'MaxHeight' => array(
 				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.')
+			),
+			'HttpPost' => array(
+				'message' => __d('meio_upload', 'The uploaded file did not use http POST. Suspected security issue.')
 			)
 		);
 		$this->defaultValidations = $this->_arrayMerge($this->defaultValidations, $messages);
@@ -1183,10 +1191,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _copyFileFromTemp($tmpName, $saveAs, $filePermission) {
 		$results = true;
-		if (!is_uploaded_file($tmpName)) {
-			$results = __d('meio_upload', 'The uploaded file did not use http POST. Suspected security issue.');
-			return $results;
-		}
+		
 		$file = new File($tmpName, $saveAs);
 		$temp = new File($saveAs, true, $filePermission);
 		if (!$temp->write($file->read())) {
