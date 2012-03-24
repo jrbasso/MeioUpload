@@ -130,6 +130,11 @@ class MeioUploadBehavior extends ModelBehavior {
 			'check' => true,
 			'last' => true
 		),
+		'HttpPost' => array(
+			'rule' => array('uploadCheckHttpPost'),
+			'check' => true,
+			'last' => true
+		),
 	);
 
 /**
@@ -216,6 +221,9 @@ class MeioUploadBehavior extends ModelBehavior {
 			),
 			'MaxHeight' => array(
 				'message' => __d('meio_upload', 'Image height is larger than maximum allowed.')
+			),
+			'HttpPost' => array(
+				'message' => __d('meio_upload', 'The uploaded file did not use http POST. Suspected security issue.')
 			)
 		);
 		$this->defaultValidations = $this->_arrayMerge($this->defaultValidations, $messages);
@@ -443,6 +451,16 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadCheckDir(&$model, $data) {
+		/**
+		 * when running unit tests for model, the current working directory is not necessarily WWW_ROOT
+		 * the code is_dir assumed that the current working directory is WWW_ROOT
+		 * if current working directory is NOT WWW_ROOT, we need to change it to WWW_ROOT (temporarily??)
+		 */
+		$currentWorkingDirectory = getcwd();
+		if ($currentWorkingDirectory != WWW_ROOT) {
+			chdir(WWW_ROOT);
+		}
+		
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['Dir']['check']) {
 				continue;
@@ -453,7 +471,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!is_dir($options['dir'])) {
 					if ($options['createDirectory']) {
 						$folder = &new Folder();
-						if (!$folder->create($options['dir'], $this->settings['folderPermission'])) {
+						if (!$folder->create($options['dir'], $options['folderPermission'])) {
 							trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', $options['dir']), E_USER_WARNING);
 							return false;
 						}
@@ -679,6 +697,28 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!empty($field['name']) && $options['length'][$type] > 0 && $$imgType > $options['length'][$type]) {
 					return false;
 				}
+			}
+		}
+		return true;
+	}
+
+/**
+ * Checks if the file is uploaded via HTTP POST
+ *
+ * @param object $model Reference to model
+ * @param array $data
+ * @return boolean
+ * @access public
+ */
+	function uploadCheckHttpPost(&$model, $data) {
+		
+		foreach ($data as $fieldName => $field) {
+			if (!$model->validate[$fieldName]['HttpPost']['check']) {
+				continue;
+			}
+
+			if (!empty($field['tmp_name'])) {
+				return is_uploaded_file($field['tmp_name']);
 			}
 		}
 		return true;
@@ -1173,9 +1213,7 @@ class MeioUploadBehavior extends ModelBehavior {
  */
 	function _copyFileFromTemp($tmpName, $saveAs, $filePermission) {
 		$results = true;
-		if (!is_uploaded_file($tmpName)) {
-			return false;
-		}
+		
 		$file = new File($tmpName, $saveAs);
 		$temp = new File($saveAs, true, $filePermission);
 		if (!$temp->write($file->read())) {
