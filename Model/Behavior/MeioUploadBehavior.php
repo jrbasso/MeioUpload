@@ -703,6 +703,28 @@ class MeioUploadBehavior extends ModelBehavior {
 	}
 
 /**
+ * Checks if the file is uploaded via HTTP POST
+ *
+ * @param object $model Reference to model
+ * @param array $data
+ * @return boolean
+ * @access public
+ */
+	function uploadCheckHttpPost(&$model, $data) {
+		
+		foreach ($data as $fieldName => $field) {
+			if (!$model->validate[$fieldName]['HttpPost']['check']) {
+				continue;
+			}
+
+			if (!empty($field['tmp_name'])) {
+				return is_uploaded_file($field['tmp_name']);
+			}
+		}
+		return true;
+	}
+
+/**
  * Uploads the files
  *
  * @param object $model Reference to model
