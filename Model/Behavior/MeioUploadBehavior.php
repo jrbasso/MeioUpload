@@ -1174,7 +1174,8 @@ class MeioUploadBehavior extends ModelBehavior {
 	function _copyFileFromTemp($tmpName, $saveAs, $filePermission) {
 		$results = true;
 		if (!is_uploaded_file($tmpName)) {
-			return false;
+			$results = __d('meio_upload', 'The uploaded file did not use http POST. Suspected security issue.');
+			return $results;
 		}
 		$file = new File($tmpName, $saveAs);
 		$temp = new File($saveAs, true, $filePermission);
