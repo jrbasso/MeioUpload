@@ -453,7 +453,7 @@ class MeioUploadBehavior extends ModelBehavior {
 				if (!is_dir($options['dir'])) {
 					if ($options['createDirectory']) {
 						$folder = &new Folder();
-						if (!$folder->create($options['dir'], $this->settings['folderPermission'])) {
+						if (!$folder->create($options['dir'], $options['folderPermission'])) {
 							trigger_error(__d('meio_upload', 'MeioUploadBehavior Error: The directory %s does not exist and cannot be created.', $options['dir']), E_USER_WARNING);
 							return false;
 						}
