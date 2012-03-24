@@ -443,6 +443,16 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access public
  */
 	function uploadCheckDir(&$model, $data) {
+		/**
+		 * when running unit tests for model, the current working directory is not necessarily WWW_ROOT
+		 * the code is_dir assumed that the current working directory is WWW_ROOT
+		 * if current working directory is NOT WWW_ROOT, we need to change it to WWW_ROOT (temporarily??)
+		 */
+		$currentWorkingDirectory = getcwd();
+		if ($currentWorkingDirectory != WWW_ROOT) {
+			chdir(WWW_ROOT);
+		}
+		
 		foreach ($data as $fieldName => $field) {
 			if (!$model->validate[$fieldName]['Dir']['check']) {
 				continue;
