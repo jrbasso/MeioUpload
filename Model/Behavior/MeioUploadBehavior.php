@@ -959,7 +959,7 @@ class MeioUploadBehavior extends ModelBehavior {
 		$phpThumb->q = $params['thumbnailQuality'];
 
 		$imageArray = explode(".", $source);
-		$phpThumb->config_output_format = $imageArray[1];
+		$phpThumb->config_output_format = end($imageArray);
 		unset($imageArray);
 
 		$phpThumb->config_prefer_imagemagick = $this->__fields[$model->alias][$fieldName]['useImageMagick'];
