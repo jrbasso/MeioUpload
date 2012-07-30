@@ -238,7 +238,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access public
  */
-	function setup(&$model, $settings = array()) {
+	function setup(Model $model, $settings = array()) {
 		$this->__fields[$model->alias] = array();
 		foreach ($settings as $field => $options) {
 			// Check if they even PASSED IN parameters
@@ -314,7 +314,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean Always true
  * @access public
  */
-	function beforeValidate(&$model) {
+	function beforeValidate(Model $model) {
 		foreach ($this->__fields[$model->alias] as $fieldName => $options) {
 			$this->_setupValidation($model, $fieldName, $options);
 		}
@@ -328,7 +328,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean Whether the upload completed
  * @access public
  */
-	function beforeSave(&$model) {
+	function beforeSave(Model $model) {
 		return $this->upload($model, null);
 	}
 
@@ -358,7 +358,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access public
  */
-	function afterSave(&$model) {
+	function afterSave(Model $model, $created) {
 		$this->_deleteFilesList($model);
 	}
 
@@ -369,7 +369,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return void
  * @access public
  */
-	function afterDelete(&$model) {
+	function afterDelete(Model $model) {
 		$this->_deleteFilesList($model);
 	}
 /**
@@ -409,7 +409,7 @@ class MeioUploadBehavior extends ModelBehavior {
  * @return boolean Always true
  * @access public
  */
-	function beforeDelete(&$model) {
+	function beforeDelete(Model $model, $cascade = true) {
 		$model->read(null, $model->id);
 		if (isset($model->data)) {
 			foreach ($this->__fields[$model->alias] as $field => $options) {
