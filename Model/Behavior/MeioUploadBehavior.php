@@ -862,6 +862,37 @@ class MeioUploadBehavior extends ModelBehavior {
 			return true;
 		}
 	}
+	
+/**
+ * Regenerate all the thumbnails, for all fields that have thumbSizes, for records in the table. (used, eg, when you want to add or change thumbnail sizes)
+ * This will overwrite existing thumbnails, when they exist, so a backup of thumbnails should be done before hand.
+ * This will not delete any redundant thumbnails - redundant thumbnails can be deleted manually.
+ * From your controller, call this method like: $this->MyModel->regenerateThumbnails();
+ *
+ * @param object $model Reference to model
+ * @access public
+ */
+	function regenerateThumbnails(Model $model) {
+		$allRows = $model->find('all');
+		
+		foreach($allRows as $data){
+
+			// Loop through each Model field passed in MeioUpload's options via the $actsAs variable of the Model
+			foreach($this->__fields[$model->alias] as $fieldName => $options){
+
+				// don't try to regenerate thumbnails if the field is empty
+				if(!empty($data[$model->alias][$fieldName])){
+					
+					// set 'name' key, because _createThumbnails methods expects it to exist (it exists when the file is uploaded - but here the file isn't uploaded, so we just fake it).
+					$data[$model->alias][$fieldName] = array('name' => $data[$model->alias][$fieldName]);
+					
+					$saveAs = $options['dir'] . DS . $data[$model->alias][$fieldName]['name'];
+					list(,$ext) = $this->_splitFilenameAndExt($data[$model->alias][$fieldName]['name']);
+					$this->_createThumbnails($model, $data, $fieldName, $saveAs, $ext, $options);
+				}
+			}
+		}
+	}
 
 /**
  * Create all the thumbnails

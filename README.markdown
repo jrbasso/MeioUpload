@@ -57,6 +57,19 @@ The behavior code will save the uploaded file's name in the 'filename' field in 
 ### Deleting an uploaded file while keeping the record
 Flag the file for deletion by setting `data[Model][filename][remove]` to something non-empty, e.g. `TRUE`. The uploaded file including possible thumbnails will then be deleted together with adherent database fields upon save. Note that the record will be preserved, only the file meta-data columns will be reset.
 
+### Regenerating all thumbnails for a Model
+
+The method regenerateThumbnails() will regenerate all thumbnails, for all fields using MeioUpload, in a given model. It can be called from your controller like this:
+
+    $this->MyModel->regenerateThumbnails();
+    
+This can be used in the situation where, for example, you upload 1000 records with 200x400 thumbnails, but then later re-design the website to have 100x150 thumbnails.
+
+Note:
+- regenerateThumbnails will not delete redundant thumbnails - so this should be done manually, if needed.
+- regenerateThumbnails will overwrite existing thumbnails, if they exist
+- it's a good idea to backup all thumbnails before calling regenerateThumbnails
+
 ### How to run unit tests for Cake 2.0 Models which use MeioUpload 4.0 as Behavior
 
 Assuming we have a Model called Image which use MeioUpload 4.0 as Behavior.
