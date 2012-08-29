@@ -906,7 +906,6 @@ class MeioUploadBehavior extends ModelBehavior {
  * @access protected
  */
 	function _createThumbnails(&$model, $data, $fieldName, $saveAs, $ext, $options) {
-		$saveAs = WWW_ROOT . $saveAs;
 		foreach ($options['thumbsizes'] as $key => $value) {
 			// Generate the name for the thumbnail
 			if (isset($options['uploadName']) && !empty($options['uploadName'])) {
