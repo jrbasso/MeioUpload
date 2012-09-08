@@ -1,3 +1,18 @@
+# Deprecated Project
+
+This project is no longer being maintained by me. I have no time to keep updating and adding more features.
+Also, the code is very tied and hard to add features or fix bugs without broke some backward compatibility.
+By this reason, I am helping [Jose Gonzalez](https://github.com/josegonzalez) to improve his
+[upload plugin](https://github.com/josegonzalez/upload) to contain the current features from MeioUpload.
+I strictly recommend you to migrate to his project when you have time.
+
+Check Jose's upload plugin: https://github.com/josegonzalez/upload
+
+
+Sorry for any inconvenience.
+
+
+
 # MeioUpload 4.0 Behavior Plugin
 
 This behavior provides to upload files in your application, as well as the possibility to translate the error message (originally only in portuguese) and the use of phpThumb as a better thumbnail generator.
